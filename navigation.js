@@ -3,7 +3,7 @@
 
 const navigationConfig = {
     brand: {
-        name: "AWS FSxN",
+        name: "Amazon FSx for NetApp ONTAP",
         logo: "☁️",
         tagline: "Cloud Storage Excellence"
     },
@@ -42,7 +42,7 @@ const navigationConfig = {
             title: "File Services Comparison",
             url: "file-services-comparison.html",
             icon: "⚖️",
-            description: "EFS vs FSx"
+            description: "EFS, FSxZ vs FSx"
         },
         {
             title: "Scale-Out Performance",
