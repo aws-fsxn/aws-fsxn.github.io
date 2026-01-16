@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AWS File Storage Tiering Comparison: EFS vs FSx | AWS FSxN</title>
+    
+    <!-- SEO Meta Tags -->
+    <meta name="description" content="Compare AWS file storage services: EFS, FSx for Windows, FSx for Lustre, and FSx for NetApp ONTAP. Discover which solution offers the best tiering, performance, and cost optimization.">
+    <meta name="keywords" content="AWS file storage comparison, EFS vs FSx, FSx ONTAP, FSx Windows, FSx Lustre, cloud file storage, AWS storage tiering, file services comparison">
+    <meta name="author" content="AWS FSxN">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://aws-fsxn.github.io/file-services-comparison.html">
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="article">
+    <meta property="og:url" content="https://aws-fsxn.github.io/file-services-comparison.html">
+    <meta property="og:title" content="AWS File Storage Tiering Comparison: EFS vs FSx">
+    <meta property="og:description" content="Compare AWS file storage services: EFS, FSx for Windows, FSx for Lustre, and FSx for NetApp ONTAP. Find the best tiering and cost optimization solution.">
+    <meta property="og:site_name" content="AWS FSxN">
+    
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:url" content="https://aws-fsxn.github.io/file-services-comparison.html">
+    <meta name="twitter:title" content="AWS File Storage Tiering Comparison: EFS vs FSx">
+    <meta name="twitter:description" content="Comprehensive comparison of AWS file storage services with tiering capabilities, performance metrics, and cost optimization.">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- JSON-LD Structured Data -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "TechArticle",
+        "headline": "AWS File Storage Tiering Comparison: EFS vs FSx",
+        "description": "Compare AWS file storage services: EFS, FSx for Windows, FSx for Lustre, and FSx for NetApp ONTAP. Discover which solution offers the best tiering, performance, and cost optimization.",
+        "author": {
+            "@type": "Organization",
+            "name": "AWS FSxN"
+        },
+        "publisher": {
+            "@type": "Organization",
+            "name": "AWS FSxN"
+        },
+        "datePublished": "2026-01-16",
+        "dateModified": "2026-01-16",
+        "mainEntityOfPage": {
+            "@type": "WebPage",
+            "@id": "https://aws-fsxn.github.io/file-services-comparison.html"
+        },
+        "about": [
+            {
+                "@type": "Thing",
+                "name": "Cloud File Storage"
+            },
+            {
+                "@type": "Thing",
+                "name": "AWS Storage Services"
+            },
+            {
+                "@type": "Thing",
+                "name": "Storage Comparison"
+            }
+        ],
+        "keywords": "AWS file storage comparison, EFS vs FSx, FSx ONTAP, storage tiering"
+    }
+    </script>
+    <style>
+        :root {
+            --primary: #1E3A8A;
+            --accent: #F59E0B;
+            --bg-canvas: #F8FAFC;
+        }
+        body { font-family: 'Inter', sans-serif; background-color: var(--bg-canvas); }
+        .chart-container { 
+            position: relative; 
+            width: 100%; 
+            max-width: 700px; 
+            margin: auto; 
+            height: 400px; 
+            max-height: 500px; 
+        }
+        .info-card { @apply bg-white p-6 rounded-xl shadow-sm border border-slate-200; }
+        .gradient-header { background: linear-gradient(135deg, #1E3A8A 0%, #3B82F6 100%); }
+    </style>
+    <!-- 
+        HTML COMMENT: 
+        1. NO MERMAID JS was used in this file.
+        2. NO SVG graphics were used in this file. 
+        3. Visualizations use Canvas (Chart.js). 
+        4. Icons and diagrams use Tailwind CSS containers and Unicode.
+
+        NARRATIVE PLAN:
+        - Introduction: The spectrum of AWS File storage.
+        - Visualization 1: Comparison Radar (Maturity, Granularity, Cost, Performance).
+        - Visualization 2: The "Read Penalty" - explaining latency impact.
+        - Qualitative Breakdown: Pro/Con grid for EFS, OpenZFS, and ONTAP.
+        - Conclusion: Summary of the "Best Fit".
+
+        PALETTE: "Brilliant Blues" - Deep Blue (#1E3A8A), Bright Blue (#3B82F6), Accent Amber (#F59E0B).
+    -->
+</head>
+<body class="p-4 md:p-8">
+
+    <header class="max-w-6xl mx-auto rounded-2xl gradient-header p-8 text-white mb-10 shadow-lg">
+        <h1 class="text-3xl md:text-5xl font-black mb-2 uppercase tracking-tighter">Tiering Decoded</h1>
+        <p class="text-blue-100 text-lg md:text-xl font-light">An Unbiased Comparison of AWS File Storage Intelligence</p>
+    </header>
+
+    <main class="max-w-6xl mx-auto space-y-12">
+        
+        <!-- INTRO SECTION -->
+        <section>
+            <p class="text-slate-600 text-lg leading-relaxed mb-6">
+                Not all tiering is created equal. While <strong>Amazon FSx for NetApp ONTAP</strong> offers the most granular control, competitors like <strong>EFS</strong> and <strong>OpenZFS</strong> offer varying levels of simplicity and performance. Understanding the trade-offs in "unit of management" is critical for cloud architects.
+            </p>
+        </section>
+
+        <!-- RADAR COMPARISON -->
+        <section class="info-card">
+            <h2 class="text-2xl font-bold mb-6 text-slate-800">The Capability Spectrum</h2>
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 items-center">
+                <div class="lg:col-span-2">
+                    <div class="chart-container">
+                        <canvas id="radarChart"></canvas>
+                    </div>
+                </div>
+                <div class="space-y-4">
+                    <div class="p-4 bg-blue-50 rounded-lg border-l-4 border-blue-800">
+                        <h4 class="font-bold text-blue-900">ONTAP: Mature & Granular</h4>
+                        <p class="text-xs text-blue-800">4KB block-level tiering managed at the volume level. Highest efficiency preservation.</p>
+                    </div>
+                    <div class="p-4 bg-amber-50 rounded-lg border-l-4 border-amber-500">
+                        <h4 class="font-bold text-amber-900">EFS: Seamless Simplicity</h4>
+                        <p class="text-xs text-amber-800">File-level transitions. Best for serverless/Lambda but lacks dedupe and block-level awareness.</p>
+                    </div>
+                    <div class="p-4 bg-emerald-50 rounded-lg border-l-4 border-emerald-600">
+                        <h4 class="font-bold text-emerald-900">OpenZFS: High Performance</h4>
+                        <p class="text-xs text-emerald-800">Filesystem-wide elastic tiering. Great performance but lacks per-volume policy granularity.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- LATENCY PENALTY VISUAL -->
+        <section class="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div class="info-card">
+                <h3 class="text-xl font-bold mb-4 flex items-center">
+                    <span class="mr-2">⏱️</span> The Latency Reality
+                </h3>
+                <p class="text-sm text-slate-500 mb-6">When you tier data, you exchange cost for latency. Here is the approximate "Time to First Byte" penalty during a retrieval event.</p>
+                <div class="chart-container" style="height: 250px;">
+                    <canvas id="latencyChart"></canvas>
+                </div>
+            </div>
+
+            <div class="info-card bg-slate-900 text-white">
+                <h3 class="text-xl font-bold mb-4">Under the Hood: ONTAP Logic</h3>
+                <div class="space-y-4">
+                    <div class="flex items-start">
+                        <div class="w-8 h-8 rounded bg-blue-600 flex items-center justify-center mr-3 text-xs">01</div>
+                        <p class="text-sm"><strong>Object Packaging:</strong> ONTAP bundles cold 4KB blocks into 4MB S3 objects to optimize API costs.</p>
+                    </div>
+                    <div class="flex items-start">
+                        <div class="w-8 h-8 rounded bg-blue-600 flex items-center justify-center mr-3 text-xs">02</div>
+                        <p class="text-sm"><strong>Metadata Stability:</strong> File headers stay on SSD. Clients "see" files instantly, latency only hits on data read.</p>
+                    </div>
+                    <div class="flex items-start">
+                        <div class="w-8 h-8 rounded bg-blue-600 flex items-center justify-center mr-3 text-xs">03</div>
+                        <p class="text-sm"><strong>Smart Promotion:</strong> Only random reads are moved back to SSD. Sequential reads stream directly from S3.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- DECISION TABLE (CSS Grid) -->
+        <section class="info-card overflow-x-auto">
+            <h3 class="text-xl font-bold mb-6">Unbiased Decision Matrix</h3>
+            <div class="min-w-[600px]">
+                <div class="grid grid-cols-4 bg-slate-100 p-3 font-bold text-sm">
+                    <div>Attribute</div>
+                    <div>Amazon EFS</div>
+                    <div>FSx OpenZFS</div>
+                    <div>FSx ONTAP</div>
+                </div>
+                <div class="grid grid-cols-4 border-b p-3 text-sm">
+                    <div class="font-semibold">Tiering Level</div>
+                    <div class="text-slate-600">File</div>
+                    <div class="text-slate-600">Filesystem</div>
+                    <div class="text-slate-600">Volume (Block)</div>
+                </div>
+                <div class="grid grid-cols-4 border-b p-3 text-sm">
+                    <div class="font-semibold">Efficiency</div>
+                    <div class="text-slate-600">None</div>
+                    <div class="text-slate-600">Compression</div>
+                    <div class="text-slate-600">Dedupe + Comp</div>
+                </div>
+                <div class="grid grid-cols-4 border-b p-3 text-sm">
+                    <div class="font-semibold">Best Use Case</div>
+                    <div class="text-slate-600">Lambda / Web</div>
+                    <div class="text-slate-600">DevOps / CI-CD</div>
+                    <div class="text-slate-600">Enterprise Apps</div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="max-w-6xl mx-auto py-12 text-center text-slate-400 text-xs">
+    </footer>
+
+    <script>
+        // Label Wrapping Logic (16 char limit)
+        function wrapLabel(label) {
+            if (label.length <= 16) return label;
+            const words = label.split(' ');
+            const lines = [];
+            let currentLine = "";
+            words.forEach(word => {
+                if ((currentLine + word).length > 16) {
+                    lines.push(currentLine.trim());
+                    currentLine = word + " ";
+                } else {
+                    currentLine += word + " ";
+                }
+            });
+            lines.push(currentLine.trim());
+            return lines;
+        }
+
+        // Shared Tooltip Config
+        const tooltipConfig = {
+            callbacks: {
+                title: function(tooltipItems) {
+                    const item = tooltipItems[0];
+                    let label = item.chart.data.labels[item.dataIndex];
+                    return Array.isArray(label) ? label.join(' ') : label;
+                }
+            }
+        };
+
+        // --- CHART 1: RADAR ---
+        const radarCtx = document.getElementById('radarChart').getContext('2d');
+        new Chart(radarCtx, {
+            type: 'radar',
+            data: {
+                labels: [wrapLabel('Tiering Maturity'), wrapLabel('Cost Efficiency'), wrapLabel('Granular Control'), wrapLabel('Management Ease'), wrapLabel('Protocol Flexibility')],
+                datasets: [
+                    {
+                        label: 'FSx ONTAP',
+                        data: [5, 5, 5, 3, 5],
+                        backgroundColor: 'rgba(30, 58, 138, 0.2)',
+                        borderColor: '#1E3A8A',
+                        pointBackgroundColor: '#1E3A8A'
+                    },
+                    {
+                        label: 'Amazon EFS',
+                        data: [4, 2, 2, 5, 2],
+                        backgroundColor: 'rgba(245, 158, 11, 0.2)',
+                        borderColor: '#F59E0B',
+                        pointBackgroundColor: '#F59E0B'
+                    },
+                    {
+                        label: 'FSx OpenZFS',
+                        data: [3, 4, 3, 4, 3],
+                        backgroundColor: 'rgba(16, 185, 129, 0.2)',
+                        borderColor: '#10B981',
+                        pointBackgroundColor: '#10B981'
+                    }
+                ]
+            },
+            options: {
+                maintainAspectRatio: false,
+                plugins: { tooltip: tooltipConfig },
+                scales: {
+                    r: { min: 0, max: 5, ticks: { display: false } }
+                }
+            }
+        });
+
+        // --- CHART 2: LATENCY ---
+        const latencyCtx = document.getElementById('latencyChart').getContext('2d');
+        new Chart(latencyCtx, {
+            type: 'bar',
+            data: {
+                labels: [wrapLabel('SSD Tier (All)'), wrapLabel('EFS IA Tier'), wrapLabel('ONTAP Cap. Pool'), wrapLabel('S3 Glacier')],
+                datasets: [{
+                    label: 'Latency (ms)',
+                    data: [0.8, 15, 25, 4000],
+                    backgroundColor: ['#1E3A8A', '#F59E0B', '#F59E0B', '#94A3B8'],
+                    borderRadius: 4
+                }]
+            },
+            options: {
+                indexAxis: 'y',
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: tooltipConfig
+                },
+                scales: {
+                    x: { type: 'logarithmic', title: { display: true, text: 'Milliseconds (Log Scale)' } }
+                }
+            }
+        });
+    </script>
+</body>
+</html>
