@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Storage Tax Elimination Kit: ONTAP Tiering Economics | AWS FSxN</title>
+    
+    <!-- SEO Meta Tags -->
+    <meta name="description" content="Eliminate storage tax with FSx for NetApp ONTAP. Discover how intelligent tiering reduces cloud storage costs by up to 90% while maintaining performance. Compare TCO vs EBS and S3.">
+    <meta name="keywords" content="ONTAP tiering, FSx NetApp ONTAP, cloud storage TCO, storage tax, data tiering, cold storage optimization, AWS FSxN, EBS vs ONTAP, S3 tiering">
+    <meta name="author" content="AWS FSxN">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://aws-fsxn.github.io/storage-tax-elimination.html">
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="article">
+    <meta property="og:url" content="https://aws-fsxn.github.io/storage-tax-elimination.html">
+    <meta property="og:title" content="The Storage Tax Elimination Kit: ONTAP Tiering Economics">
+    <meta property="og:description" content="Eliminate storage tax with FSx for NetApp ONTAP. Discover how intelligent tiering reduces cloud storage costs by up to 90% while maintaining performance.">
+    <meta property="og:site_name" content="AWS FSxN">
+    
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:url" content="https://aws-fsxn.github.io/storage-tax-elimination.html">
+    <meta name="twitter:title" content="The Storage Tax Elimination Kit: ONTAP Tiering Economics">
+    <meta name="twitter:description" content="Eliminate storage tax with FSx for NetApp ONTAP. Discover how intelligent tiering reduces cloud storage costs by up to 90% while maintaining performance.">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- JSON-LD Structured Data -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "Article",
+        "headline": "The Storage Tax Elimination Kit: ONTAP Tiering Economics",
+        "description": "Eliminate storage tax with FSx for NetApp ONTAP. Discover how intelligent tiering reduces cloud storage costs by up to 90% while maintaining performance. Compare TCO vs EBS and S3.",
+        "author": {
+            "@type": "Organization",
+            "name": "AWS FSxN"
+        },
+        "publisher": {
+            "@type": "Organization",
+            "name": "AWS FSxN"
+        },
+        "datePublished": "2026-01-16",
+        "dateModified": "2026-01-16",
+        "mainEntityOfPage": {
+            "@type": "WebPage",
+            "@id": "https://aws-fsxn.github.io/storage-tax-elimination.html"
+        },
+        "about": {
+            "@type": "Thing",
+            "name": "Cloud Storage Optimization"
+        },
+        "keywords": "ONTAP tiering, FSx NetApp ONTAP, cloud storage TCO, storage tax, data tiering"
+    }
+    </script>
+    <style>
+        :root {
+            --primary: #1E3A8A; /* Deep Blue */
+            --accent: #F59E0B; /* Amber */
+            --success: #10B981; /* Emerald */
+            --bg-canvas: #F8FAFC;
+        }
+        body { font-family: 'Inter', system-ui, sans-serif; background-color: var(--bg-canvas); color: #1E293B; }
+        .chart-container { 
+            position: relative; 
+            width: 100%; 
+            max-width: 600px; 
+            margin: auto; 
+            height: 350px; 
+            max-height: 400px;
+        }
+        .metric-card { @apply bg-white p-6 rounded-2xl shadow-sm border border-slate-200 transition-all hover:shadow-md; }
+        .tier-arrow { @apply relative flex items-center justify-center h-12 w-full; }
+        .tier-arrow::after { content: '▼'; @apply absolute -bottom-2 text-slate-300; }
+    </style>
+    <!-- 
+        HTML COMMENT: 
+        1. NO MERMAID JS was used.
+        2. NO SVG graphics were used.
+        3. Visualizations use Canvas (Chart.js). 
+        4. Architecture and flow diagrams are built with Tailwind Grid/Flex and Unicode.
+        5. Selected Palette: "Brilliant Blues" with "Energetic Ambers" for highlighting the "ONTAP Savings Zone".
+    -->
+</head>
+<body class="p-4 md:p-10">
+
+    <!-- HERO SECTION -->
+    <header class="max-w-6xl mx-auto text-center mb-16">
+        <h1 class="text-4xl md:text-6xl font-black text-slate-900 tracking-tight mb-4">
+            The <span class="text-blue-700">Storage Tax</span> Elimination Kit
+        </h1>
+        <p class="text-xl text-slate-600 max-w-3xl mx-auto leading-relaxed">
+            Stop overpaying for "Cold Data." Visualize how <strong>FSx for NetApp ONTAP</strong> crushes the TCO of traditional cloud storage.
+        </p>
+    </header>
+
+    <main class="max-w-7xl mx-auto space-y-12">
+
+        <!-- SECTION 1: THE TIERING PROCESS (VISUAL FLOW) -->
+        <section class="metric-card bg-slate-900 text-white border-none p-10 overflow-hidden">
+            <h2 class="text-3xl font-bold mb-8 text-center">Inside the FabricPool Engine</h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 relative">
+                
+                <!-- STEP 1: INGEST -->
+                <div class="flex flex-col items-center">
+                    <div class="w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center text-3xl mb-4 shadow-lg">📥</div>
+                    <h4 class="font-bold mb-2">1. Data Ingest</h4>
+                    <p class="text-xs text-slate-400 text-center">Data lands on high-performance NVMe SSDs via NFS, SMB, or iSCSI.</p>
+                </div>
+
+                <!-- STEP 2: ANALYZE -->
+                <div class="flex flex-col items-center">
+                    <div class="w-16 h-16 bg-amber-500 rounded-2xl flex items-center justify-center text-3xl mb-4 shadow-lg">🧠</div>
+                    <h4 class="font-bold mb-2">2. Block Analysis</h4>
+                    <p class="text-xs text-slate-400 text-center">ONTAP monitors access frequency at the 4KB block level (not whole files).</p>
+                </div>
+
+                <!-- STEP 3: TIER -->
+                <div class="flex flex-col items-center">
+                    <div class="w-16 h-16 bg-emerald-500 rounded-2xl flex items-center justify-center text-3xl mb-4 shadow-lg">🧊</div>
+                    <h4 class="font-bold mb-2">3. Cold Tiering</h4>
+                    <p class="text-xs text-slate-400 text-center">Blocks inactive for > 31 days move to the elastic Capacity Pool (S3).</p>
+                </div>
+
+                <!-- CONNECTOR LINES (CSS) -->
+                <div class="hidden md:block absolute top-8 left-1/4 w-1/6 h-0.5 bg-slate-700"></div>
+                <div class="hidden md:block absolute top-8 right-1/4 w-1/6 h-0.5 bg-slate-700"></div>
+            </div>
+
+            <div class="mt-12 bg-slate-800 p-6 rounded-xl border border-slate-700 text-center">
+                <p class="text-blue-400 font-mono text-sm">PRO TIP: Efficiency signatures (Dedupe/Comp) are preserved in the cold tier.</p>
+            </div>
+        </section>
+
+        <!-- SECTION 2: THE COST COMPARISON -->
+        <section class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            
+            <div class="metric-card">
+                <h3 class="text-2xl font-bold mb-6">Price Per GB Comparison</h3>
+                <p class="text-sm text-slate-500 mb-6">Visualizing the monthly cost to store 1TB of data across different AWS services (Effective Blended Rates).</p>
+                <div class="chart-container">
+                    <canvas id="priceChart"></canvas>
+                </div>
+            </div>
+
+            <div class="metric-card flex flex-col justify-center">
+                <h3 class="text-2xl font-bold mb-6">Why ONTAP Wins</h3>
+                <div class="space-y-6">
+                    <div class="flex items-start gap-4">
+                        <div class="bg-blue-100 p-2 rounded-lg text-blue-700">✓</div>
+                        <div>
+                            <p class="font-bold">Zero-Management Archival</p>
+                            <p class="text-sm text-slate-500">Unlike EBS or FSx Windows, data moves to low-cost tiers without human intervention.</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start gap-4">
+                        <div class="bg-blue-100 p-2 rounded-lg text-blue-700">✓</div>
+                        <div>
+                            <p class="font-bold">Compression Multiplier</p>
+                            <p class="text-sm text-slate-500">ONTAP shrinks data 3:1 on average before it even hits the cold tier.</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start gap-4">
+                        <div class="bg-blue-100 p-2 rounded-lg text-blue-700">✓</div>
+                        <div>
+                            <p class="font-bold">Universal Accessibility</p>
+                            <p class="text-sm text-slate-500">Data in the cold tier is still instantly accessible to apps via SMB/NFS.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 3: THE "WINNING" SCENARIO -->
+        <section class="metric-card bg-indigo-50 border-indigo-200">
+            <h3 class="text-2xl font-bold mb-6 text-indigo-900 text-center">The "Enterprise Winning" Scenario</h3>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-10 items-center">
+                <div class="space-y-4">
+                    <p class="text-indigo-800 font-semibold text-lg">Scenario: The Massive Unstructured Lake</p>
+                    <p class="text-slate-600 leading-relaxed">
+                        An organization has <strong>500TB</strong> of engineering data. 
+                        <strong>100TB</strong> is accessed daily (Work in progress). 
+                        <strong>400TB</strong> is archival (Completed projects).
+                    </p>
+                    <div class="p-4 bg-white rounded-xl shadow-sm border border-indigo-100">
+                        <p class="text-xs uppercase font-bold text-slate-400 mb-2">Result with FSx ONTAP</p>
+                        <div class="flex justify-between items-end">
+                            <div>
+                                <p class="text-3xl font-black text-indigo-700">$5,800</p>
+                                <p class="text-[10px] text-slate-500">Estimated Monthly Bill</p>
+                            </div>
+                            <div class="text-right">
+                                <p class="text-xl font-bold text-emerald-600">62% SAVINGS</p>
+                                <p class="text-[10px] text-slate-500">vs. Single-Tier Storage</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="chart-container">
+                    <canvas id="scenarioChart"></canvas>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 4: COMPARISON MATRIX -->
+        <section class="metric-card overflow-x-auto">
+            <h3 class="text-2xl font-bold mb-8">Storage Feature Matrix</h3>
+            <table class="w-full text-left border-collapse">
+                <thead>
+                    <tr class="bg-slate-50 text-slate-500 text-xs uppercase tracking-wider">
+                        <th class="p-4 border-b">Feature</th>
+                        <th class="p-4 border-b">FSx for NetApp ONTAP</th>
+                        <th class="p-4 border-b">Amazon EFS</th>
+                        <th class="p-4 border-b">FSx for Windows</th>
+                        <th class="p-4 border-b">Amazon EBS (gp3)</th>
+                    </tr>
+                </thead>
+                <tbody class="text-sm">
+                    <tr class="border-b hover:bg-slate-50">
+                        <td class="p-4 font-bold">Auto-Tiering Unit</td>
+                        <td class="p-4 text-blue-700 font-semibold">4KB Block</td>
+                        <td class="p-4">Whole File</td>
+                        <td class="p-4 text-slate-400">Not Native</td>
+                        <td class="p-4 text-slate-400">None</td>
+                    </tr>
+                    <tr class="border-b hover:bg-slate-50">
+                        <td class="p-4 font-bold">Data Efficiency</td>
+                        <td class="p-4 text-blue-700 font-semibold">Dedupe + Comp</td>
+                        <td class="p-4 text-slate-400">None</td>
+                        <td class="p-4">Deduplication</td>
+                        <td class="p-4 text-slate-400">None</td>
+                    </tr>
+                    <tr class="border-b hover:bg-slate-50">
+                        <td class="p-4 font-bold">Elasticity</td>
+                        <td class="p-4 text-blue-700 font-semibold">Capacity Pool Only</td>
+                        <td class="p-4">Fully Elastic</td>
+                        <td class="p-4 text-slate-400">Provisioned</td>
+                        <td class="p-4 text-slate-400">Provisioned</td>
+                    </tr>
+                    <tr class="hover:bg-slate-50">
+                        <td class="p-4 font-bold">Multi-Protocol</td>
+                        <td class="p-4 text-blue-700 font-semibold">SMB, NFS, iSCSI, S3</td>
+                        <td class="p-4">NFS Only</td>
+                        <td class="p-4">SMB Only</td>
+                        <td class="p-4">Block (Attach)</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+    </main>
+
+    <footer class="max-w-6xl mx-auto py-12 text-center text-slate-400 text-xs">
+        <p></p>
+     </footer>
+
+    <script>
+        // --- HELPER: LABEL WRAPPING ---
+        function wrapLabel(label) {
+            if (label.length <= 16) return label;
+            const words = label.split(' ');
+            const lines = [];
+            let currentLine = "";
+            words.forEach(w => {
+                if ((currentLine + w).length > 16) {
+                    lines.push(currentLine.trim());
+                    currentLine = w + " ";
+                } else {
+                    currentLine += w + " ";
+                }
+            });
+            lines.push(currentLine.trim());
+            return lines;
+        }
+
+        // --- TOOLTIP CONFIG ---
+        const commonTooltip = {
+            callbacks: {
+                title: function(tooltipItems) {
+                    const item = tooltipItems[0];
+                    let label = item.chart.data.labels[item.dataIndex];
+                    return Array.isArray(label) ? label.join(' ') : label;
+                }
+            }
+        };
+
+        // --- CHART 1: PRICE PER GB ---
+        const priceCtx = document.getElementById('priceChart').getContext('2d');
+        new Chart(priceCtx, {
+            type: 'bar',
+            data: {
+                labels: [
+                    wrapLabel('Amazon EFS (Standard)'),
+                    wrapLabel('FSx Windows (SSD)'),
+                    wrapLabel('Amazon EBS (gp3)'),
+                    wrapLabel('FSx ONTAP (80% Tiered)')
+                ],
+                datasets: [{
+                    label: 'Effective Price ($/GB-mo)',
+                    data: [0.30, 0.13, 0.08, 0.045],
+                    backgroundColor: ['#94A3B8', '#94A3B8', '#94A3B8', '#1D4ED8'],
+                    borderRadius: 6
+                }]
+            },
+            options: {
+                maintainAspectRatio: false,
+                responsive: true,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: commonTooltip
+                },
+                scales: {
+                    y: { beginAtZero: true, title: { display: true, text: 'USD per Gigabyte' } }
+                }
+            }
+        });
+
+        // --- CHART 2: SCENARIO MIX ---
+        const scCtx = document.getElementById('scenarioChart').getContext('2d');
+        new Chart(scCtx, {
+            type: 'doughnut',
+            data: {
+                labels: [wrapLabel('Hot Storage (SSD Cost)'), wrapLabel('Cold Storage (S3 Cost)')],
+                datasets: [{
+                    data: [100, 400],
+                    backgroundColor: ['#1D4ED8', '#F59E0B'],
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                maintainAspectRatio: false,
+                responsive: true,
+                plugins: {
+                    tooltip: commonTooltip,
+                    legend: { position: 'bottom' },
+                    title: {
+                        display: true,
+                        text: 'Optimal Storage Mix for 500TB'
+                    }
+                },
+                cutout: '60%'
+            }
+        });
+    </script>
+</body>
+</html>
