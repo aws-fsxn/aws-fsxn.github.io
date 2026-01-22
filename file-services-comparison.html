@@ -175,19 +175,19 @@
                 </div>
             </div>
 
-            <div class="info-card bg-slate-900 text-white">
+            <div class="info-card bg-slate-900 text-white p-3 rounded-2xl shadow-2xl">
                 <h3 class="text-xl font-bold mb-4">Under the Hood: ONTAP Logic</h3>
                 <div class="space-y-4">
                     <div class="flex items-start">
-                        <div class="w-8 h-8 rounded bg-blue-600 flex items-center justify-center mr-3 text-xs">01</div>
+                        <div class="w-8 h-8 rounded bg-blue-600 flex items-center justify-center mr-3 text-xs p-2">01</div>
                         <p class="text-sm"><strong>Object Packaging:</strong> ONTAP bundles cold 4KB blocks into 4MB S3 objects to optimize API costs.</p>
                     </div>
                     <div class="flex items-start">
-                        <div class="w-8 h-8 rounded bg-blue-600 flex items-center justify-center mr-3 text-xs">02</div>
+                        <div class="w-8 h-8 rounded bg-blue-600 flex items-center justify-center mr-3 text-xs p-2">02</div>
                         <p class="text-sm"><strong>Metadata Stability:</strong> File headers stay on SSD. Clients "see" files instantly, latency only hits on data read.</p>
                     </div>
                     <div class="flex items-start">
-                        <div class="w-8 h-8 rounded bg-blue-600 flex items-center justify-center mr-3 text-xs">03</div>
+                        <div class="w-8 h-8 rounded bg-blue-600 flex items-center justify-center mr-3 text-xs p-2">03</div>
                         <p class="text-sm"><strong>Smart Promotion:</strong> Only random reads are moved back to SSD. Sequential reads stream directly from S3.</p>
                     </div>
                 </div>
