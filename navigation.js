@@ -67,6 +67,12 @@ const navigationConfig = {
             url: "s3-api-tax.html",
             icon: "💡",
             description: "4MB Aggregation Engine"
+        },
+        {
+            title: "EBS vs FSx ONTAP",
+            url: "ebs-vs-fsxn-showdown.html",
+            icon: "🥊",
+            description: "Block Storage Showdown"
         }
     ]
 };

@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EBS vs FSx for ONTAP: Block Storage Performance Comparison | AWS FSxN</title>
+    
+    <!-- SEO Meta Tags -->
+    <meta name="description" content="Compare Amazon EBS and FSx for ONTAP iSCSI block storage. Discover cost savings, performance gains, and enterprise features like deduplication, compression, and FabricPool tiering.">
+    <meta name="keywords" content="EBS vs FSx ONTAP, iSCSI block storage, AWS block storage comparison, FSx ONTAP iSCSI, storage deduplication, FabricPool, enterprise block storage, cloud storage costs, EBS alternatives">
+    <meta name="author" content="AWS FSxN">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://aws-fsxn.github.io/ebs-vs-fsxn-showdown.html">
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="article">
+    <meta property="og:url" content="https://aws-fsxn.github.io/ebs-vs-fsxn-showdown.html">
+    <meta property="og:title" content="EBS vs FSx for ONTAP: Block Storage Performance Comparison">
+    <meta property="og:description" content="Compare Amazon EBS and FSx for ONTAP iSCSI block storage. Discover cost savings, performance gains, and enterprise features.">
+    <meta property="og:site_name" content="AWS FSxN">
+    
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:url" content="https://aws-fsxn.github.io/ebs-vs-fsxn-showdown.html">
+    <meta name="twitter:title" content="EBS vs FSx for ONTAP: Block Storage Performance Comparison">
+    <meta name="twitter:description" content="Compare Amazon EBS and FSx for ONTAP iSCSI block storage. Cost savings, performance gains, and enterprise features.">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- Material Design Icons -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+    
+    <!-- JSON-LD Structured Data -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "TechArticle",
+        "headline": "EBS vs FSx for ONTAP: Block Storage Performance Comparison",
+        "description": "Compare Amazon EBS and FSx for ONTAP iSCSI block storage. Discover cost savings, performance gains, and enterprise features like deduplication, compression, and FabricPool tiering.",
+        "author": {
+            "@type": "Organization",
+            "name": "AWS FSxN"
+        },
+        "publisher": {
+            "@type": "Organization",
+            "name": "AWS FSxN"
+        },
+        "datePublished": "2026-01-22",
+        "dateModified": "2026-01-22",
+        "mainEntityOfPage": {
+            "@type": "WebPage",
+            "@id": "https://aws-fsxn.github.io/ebs-vs-fsxn-showdown.html"
+        },
+        "about": [
+            {
+                "@type": "Thing",
+                "name": "Block Storage Comparison"
+            },
+            {
+                "@type": "Thing",
+                "name": "Enterprise Storage Architecture"
+            },
+            {
+                "@type": "Thing",
+                "name": "Cloud Storage Optimization"
+            }
+        ],
+        "keywords": "EBS, FSx ONTAP, iSCSI, block storage, deduplication, compression, FabricPool"
+    }
+    </script>
+    <style>
+        /* Palette: High-Contrast Indigo & Amber */
+        :root {
+            --primary: #1E1B4B; /* Indigo 950 */
+            --secondary: #4338CA; /* Indigo 700 */
+            --accent: #F59E0B; /* Amber 500 */
+            --bg-light: #F8FAFC;
+            --card-bg: #FFFFFF;
+            --success: #10B981;
+        }
+
+        body { font-family: 'Inter', system-ui, -apple-system, sans-serif; background-color: var(--bg-light); color: #1E293B; scroll-behavior: smooth; }
+        
+        /* Navigation offset for main content */
+        .main-content {
+            margin-left: 0;
+            transition: margin-left 0.3s ease;
+        }
+
+        @media (min-width: 768px) {
+            .main-content {
+                margin-left: 288px;
+            }
+        }
+        
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+            margin: auto;
+            height: 350px;
+            max-height: 400px;
+        }
+
+        .comparison-card {
+            @apply bg-white p-6 rounded-3xl shadow-sm border border-slate-200 transition-all hover:shadow-md;
+        }
+
+        .vs-badge {
+            @apply absolute -top-4 left-1/2 -translate-x-1/2 bg-amber-500 text-white text-xs font-black px-4 py-1 rounded-full shadow-lg;
+        }
+
+        .efficiency-bar {
+            height: 8px;
+            border-radius: 4px;
+            background: #E2E8F0;
+            overflow: hidden;
+            position: relative;
+        }
+        .efficiency-fill {
+            height: 100%;
+            background: var(--secondary);
+            transition: width 1s ease-in-out;
+        }
+    </style>
+    <!-- 
+        INFOGRAPHIC PLAN:
+        1. Intro: The core architectural difference (Pinned vs. Fabric).
+        2. Cost Comparison: 1TB / 16,000 IOPS scenario across gp3, io2, and FSxN (Chart.js Bar).
+        3. Feature Radar: Comparing IQ levels (Snapshots, Clones, Tiering, Dedupe/Comp).
+        4. Management Matrix: Comparing "Ease of Setup" vs "Operational Scale".
+        
+        ENHANCEMENTS:
+        - Replaced "Global Deduplication" with "Deduplication and Compression".
+        - Added Data Efficiency visual metrics.
+        - Improved architectural detail descriptions.
+        
+        CONFIRMATION: NO MERMAID JS | NO SVG USED.
+        Arrows and icons are Unicode/CSS.
+    -->
+</head>
+<body class="p-4 md:p-8">
+
+    <!-- Load Navigation -->
+    <script src="navigation.js"></script>
+
+    <div class="main-content">
+    <!-- HERO SECTION -->
+    <header class="max-w-6xl mx-auto text-center py-12">
+        <div class="inline-block px-4 py-1 mb-4 text-xs font-bold tracking-widest text-indigo-700 bg-indigo-100 rounded-full uppercase">
+            Enterprise Block Storage Architecture
+        </div>
+        <h1 class="text-4xl md:text-6xl font-black mb-6 leading-tight">
+            EBS or <span class="text-indigo-700">FSx for ONTAP?</span>
+        </h1>
+        <p class="text-xl text-slate-500 max-w-3xl mx-auto leading-relaxed">
+            Stop treating block storage like a simple virtual disk. Discover the performance and cost gap between "Basic Disks" and "Managed Data Frameworks."
+        </p>
+    </header>
+
+    <main class="max-w-7xl mx-auto space-y-12">
+
+        <!-- CORE ARCHITECTURE DIAGRAM (CSS ONLY) -->
+        <section class="grid grid-cols-1 md:grid-cols-2 gap-12 items-stretch">
+            <div class="comparison-card relative border-t-4 border-slate-300">
+                <div class="vs-badge">TRADITIONAL</div>
+                <h3 class="text-xl font-black mb-6 text-center">Amazon EBS</h3>
+                <div class="space-y-4">
+                    <div class="flex items-center gap-4 p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                        <div class="text-3xl">🔌</div>
+                        <div>
+                            <p class="font-bold text-sm">Pinned Architecture</p>
+                            <p class="text-xs text-slate-500">Fixed 1:1 mapping. Volumes are physically tied to specific Availability Zones and instances.</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-4 p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                        <div class="text-3xl">💸</div>
+                        <div>
+                            <p class="font-bold text-sm">Provisioned Waste</p>
+                            <p class="text-xs text-slate-500">Pay for 100% of provisioned SSD capacity, even if blocks contain zeros or duplicates.</p>
+                        </div>
+                    </div>
+                    <div class="bg-red-50 p-4 rounded-xl">
+                        <p class="text-[10px] font-bold text-red-500 uppercase mb-2">Efficiency Level</p>
+                        <div class="efficiency-bar"><div class="efficiency-fill" style="width: 20%; background-color: #EF4444;"></div></div>
+                        <p class="text-[9px] text-red-400 mt-1 italic">No native dedupe or compression</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="comparison-card relative border-t-4 border-indigo-600 bg-indigo-50/20">
+                <div class="vs-badge bg-indigo-700">MODERN</div>
+                <h3 class="text-xl font-black mb-6 text-center text-indigo-900">FSx for ONTAP (iSCSI)</h3>
+                <div class="space-y-4">
+                    <div class="flex items-center gap-4 p-4 bg-white rounded-2xl border border-indigo-100 shadow-sm">
+                        <div class="text-3xl">🕸️</div>
+                        <div>
+                            <p class="font-bold text-sm">Enterprise Storage Fabric</p>
+                            <p class="text-xs text-indigo-600">Shared iSCSI LUNs. Natively accessible across clusters, regions, and multiple instances.</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-4 p-4 bg-white rounded-2xl border border-indigo-100 shadow-sm">
+                        <div class="text-3xl">🧊</div>
+                        <div>
+                            <p class="font-bold text-sm">Adaptive Block-Level Tiering</p>
+                            <p class="text-xs text-indigo-600">FabricPool automatically moves cold database blocks to S3-priced capacity pools.</p>
+                        </div>
+                    </div>
+                    <div class="bg-emerald-50 p-4 rounded-xl">
+                        <p class="text-[10px] font-bold text-emerald-600 uppercase mb-2">Efficiency Level</p>
+                        <div class="efficiency-bar"><div class="efficiency-fill" style="width: 85%; background-color: #10B981;"></div></div>
+                        <p class="text-[9px] text-emerald-600 mt-1 italic">Native Deduplication & Compression</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- COST COMPARISON CHART -->
+        <section class="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+            <div class="comparison-card">
+                <h3 class="text-xl font-bold mb-2">Performance vs. Price</h3>
+                <p class="text-xs text-slate-500 mb-8 italic">Scenario: 1TB / 16,000 IOPS / 80% Cold Data (Monthly Est.)</p>
+                <div class="chart-container">
+                    <canvas id="costChart"></canvas>
+                </div>
+            </div>
+            <div class="space-y-6">
+                <h2 class="text-3xl font-black">The Savings Multiplier</h2>
+                <p class="text-slate-600">
+                    EBS is a flat-cost utility. FSxN is a self-optimizing engine. 
+                </p>
+                <div class="space-y-4">
+                    <div class="flex gap-4 p-3 bg-white rounded-2xl border border-slate-100 shadow-sm">
+                        <div class="text-amber-500 text-xl font-black">1.</div>
+                        <div>
+                            <p class="font-bold text-sm">Deduplication & Compression</p>
+                            <p class="text-xs text-slate-500">Shrink your physical block footprint by up to 65% for general DB workloads.</p>
+                        </div>
+                    </div>
+                    <div class="flex gap-4 p-3 bg-white rounded-2xl border border-slate-100 shadow-sm">
+                        <div class="text-amber-500 text-xl font-black">2.</div>
+                        <div>
+                            <p class="font-bold text-sm">Blended Billing</p>
+                            <p class="text-xs text-slate-500">Combine SSD speeds with S3 pricing for cold blocks to achieve sub-$0.05/GB effective rates.</p>
+                        </div>
+                    </div>
+                    <div class="flex gap-4 p-3 bg-white rounded-2xl border border-slate-100 shadow-sm">
+                        <div class="text-amber-500 text-xl font-black">3.</div>
+                        <div>
+                            <p class="font-bold text-sm">IOPS Pooling</p>
+                            <p class="text-xs text-slate-500">Share a high-performance throughput pool across all LUNs, eliminating individual volume throttling.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- FEATURE RADAR -->
+        <section class="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+            <div class="order-2 md:order-1 space-y-6">
+                <h2 class="text-3xl font-black">Capability Showdown</h2>
+                <div class="space-y-4">
+                    <div class="flex justify-between items-center p-3 bg-white rounded-xl shadow-sm border border-slate-100">
+                        <span class="text-sm font-bold">Instant Writable Clones (FlexClone)</span>
+                        <span class="text-[10px] font-black px-2 py-1 bg-indigo-100 text-indigo-700 rounded uppercase">FSxN Exclusive</span>
+                    </div>
+                    <div class="flex justify-between items-center p-3 bg-white rounded-xl shadow-sm border border-slate-100">
+                        <span class="text-sm font-bold">Block-Level Tiering (FabricPool)</span>
+                        <span class="text-[10px] font-black px-2 py-1 bg-indigo-100 text-indigo-700 rounded uppercase">FSxN Exclusive</span>
+                    </div>
+                    <div class="flex justify-between items-center p-3 bg-white rounded-xl shadow-sm border border-slate-100">
+                        <span class="text-sm font-bold">Deduplication & Compression</span>
+                        <span class="text-[10px] font-black px-2 py-1 bg-indigo-100 text-indigo-700 rounded uppercase">FSxN Exclusive</span>
+                    </div>
+                    <div class="flex justify-between items-center p-3 bg-white rounded-xl shadow-sm border border-slate-100">
+                        <span class="text-sm font-bold">App-Aware Snapshots</span>
+                        <span class="text-[10px] font-black px-2 py-1 bg-slate-100 text-slate-500 rounded uppercase">Both Supported</span>
+                    </div>
+                </div>
+            </div>
+            <div class="order-1 md:order-2 comparison-card">
+                <div class="chart-container">
+                    <canvas id="iqChart"></canvas>
+                </div>
+            </div>
+        </section>
+
+        <!-- MANAGEMENT COMPARISON -->
+        <section class="bg-indigo-950 text-white rounded-[3rem] p-8 md:p-12 shadow-2xl relative overflow-hidden">
+            <div class="absolute top-0 right-0 p-12 opacity-5 text-9xl">⚙️</div>
+            <div class="relative z-10 text-center mb-12">
+                <h2 class="text-3xl font-black">Strategic Management View</h2>
+                <p class="text-indigo-300">Evaluating "Ease of Inception" vs. "Ease of Operation."</p>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 relative z-10">
+                <div class="p-6 bg-indigo-900/50 rounded-2xl border border-indigo-800">
+                    <h4 class="text-xl font-bold text-amber-500 mb-4">EBS: Low Entry, High Debt</h4>
+                    <ul class="space-y-3 text-sm">
+                        <li class="flex gap-2"><span>✅</span> Zero storage networking setup.</li>
+                        <li class="flex gap-2"><span>✅</span> API-native volume lifecycle.</li>
+                        <li class="flex gap-2 text-red-400"><span>⚠️</span> Operational burden grows with volume count.</li>
+                        <li class="flex gap-2 text-red-400"><span>⚠️</span> No cross-volume intelligence or sharing.</li>
+                    </ul>
+                </div>
+                <div class="p-6 bg-indigo-900/50 rounded-2xl border border-indigo-800">
+                    <h4 class="text-xl font-bold text-emerald-400 mb-4">FSxN: High IQ, Lower TCO</h4>
+                    <ul class="space-y-3 text-sm">
+                        <li class="flex gap-2"><span>✅</span> Global policies for thousands of LUNs.</li>
+                        <li class="flex gap-2"><span>✅</span> Instant DR and replication logic.</li>
+                        <li class="flex gap-2 text-amber-400"><span>⚠️</span> Requires iSCSI network configuration.</li>
+                        <li class="flex gap-2 text-amber-400"><span>⚠️</span> Managing a shared cluster entity.</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="max-w-6xl mx-auto py-20 text-center text-slate-400 text-xs font-bold uppercase tracking-widest">
+        
+    </footer>
+    </div>
+
+    <script>
+        // --- HELPER: LABEL WRAPPING (16 Chars) ---
+        function wrapLabel(label) {
+            if (label.length <= 16) return label;
+            const words = label.split(' ');
+            const lines = [];
+            let currentLine = "";
+            words.forEach(w => {
+                if ((currentLine + w).length > 16) {
+                    lines.push(currentLine.trim());
+                    currentLine = w + " ";
+                } else {
+                    currentLine += w + " ";
+                }
+            });
+            lines.push(currentLine.trim());
+            return lines;
+        }
+
+        // --- TOOLTIP CONFIG ---
+        const commonTooltip = {
+            callbacks: {
+                title: function(tooltipItems) {
+                    const item = tooltipItems[0];
+                    let label = item.chart.data.labels[item.dataIndex];
+                    return Array.isArray(label) ? label.join(' ') : label;
+                }
+            }
+        };
+
+        // --- CHART: COST COMPARISON ---
+        const costCtx = document.getElementById('costChart').getContext('2d');
+        new Chart(costCtx, {
+            type: 'bar',
+            data: {
+                labels: [wrapLabel('EBS gp3 (16k IOPS)'), wrapLabel('EBS io2 (16k IOPS)'), wrapLabel('FSx for ONTAP (Blended)')],
+                datasets: [{
+                    label: 'Estimated Monthly Cost ($)',
+                    data: [130, 420, 115],
+                    backgroundColor: ['#94A3B8', '#EF4444', '#4338CA'],
+                    borderRadius: 12
+                }]
+            },
+            options: {
+                maintainAspectRatio: false,
+                responsive: true,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: commonTooltip
+                },
+                scales: {
+                    y: { beginAtZero: true, title: { display: true, text: 'USD per Month' } }
+                }
+            }
+        });
+
+        // --- CHART: IQ RADAR ---
+        const iqCtx = document.getElementById('iqChart').getContext('2d');
+        new Chart(iqCtx, {
+            type: 'radar',
+            data: {
+                labels: [
+                    wrapLabel('Snapshots & Clones'),
+                    wrapLabel('Efficiency & Dedupe'),
+                    wrapLabel('Sharing & Clustering'),
+                    wrapLabel('Scale Management'),
+                    wrapLabel('Ease of Setup')
+                ],
+                datasets: [
+                    {
+                        label: 'FSx for ONTAP',
+                        data: [10, 10, 10, 9, 5],
+                        borderColor: '#4338CA',
+                        backgroundColor: 'rgba(67, 56, 202, 0.2)',
+                        pointBackgroundColor: '#4338CA'
+                    },
+                    {
+                        label: 'Amazon EBS',
+                        data: [4, 2, 3, 5, 10],
+                        borderColor: '#F59E0B',
+                        backgroundColor: 'rgba(245, 158, 11, 0.2)',
+                        pointBackgroundColor: '#F59E0B'
+                    }
+                ]
+            },
+            options: {
+                maintainAspectRatio: false,
+                responsive: true,
+                plugins: {
+                    tooltip: commonTooltip,
+                    legend: { position: 'bottom' }
+                },
+                scales: {
+                    r: {
+                        angleLines: { color: '#E2E8F0' },
+                        grid: { color: '#E2E8F0' },
+                        pointLabels: { font: { size: 10, weight: 'bold' } },
+                        ticks: { display: false, max: 10 }
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html>
