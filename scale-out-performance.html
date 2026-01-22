@@ -461,10 +461,11 @@
                 ],
                 datasets: [{
                     label: 'Suitability Index',
-                    data: [10, 10, 10, 10, 10],
-                    borderColor: '#3B82F6',
-                    backgroundColor: 'rgba(59, 130, 246, 0.2)',
-                    pointBackgroundColor: '#3B82F6'
+                    data: [95, 95, 95, 90, 85],
+                    backgroundColor: 'rgba(30, 58, 138, 0.2)',
+                    borderColor: '#1E3A8A',
+                    pointBackgroundColor: '#1E3A8A',
+                    borderWidth: 2
                 }]
             },
             options: {
@@ -476,10 +477,9 @@
                 },
                 scales: {
                     r: {
-                        angleLines: { color: '#E2E8F0' },
-                        grid: { color: '#E2E8F0' },
-                        pointLabels: { font: { size: 10, weight: 'bold' } },
-                        ticks: { display: false, max: 10 }
+                        beginAtZero: true,
+                        max: 100,
+                        ticks: { display: false }
                     }
                 }
             }
