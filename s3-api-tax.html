@@ -160,7 +160,7 @@
                 <p class="text-slate-600 leading-relaxed">
                     S3 pricing is split between <strong>Storage</strong> and <strong>Requests</strong>. In a native S3 environment, 1,000 small files trigger 1,000 expensive `PUT` requests. FabricPool fixes this by bundling data.
                 </p>
-                <div class="logic-card bg-slate-900 text-white border-none">
+                <div class="logic-card bg-slate-900 text-white border-none p-6 rounded-2xl shadow-lg">
                     <div class="text-xs font-bold text-blue-400 mb-4 uppercase">The Packaging Logic</div>
                     <div class="flex flex-col gap-4">
                         <div class="flex items-center gap-4">
@@ -267,7 +267,7 @@
 
         <!-- SECTION 4: REAL WORLD HUDI SCENARIO -->
         <section class="grid grid-cols-1 md:grid-cols-2 gap-8 items-stretch">
-            <div class="logic-card bg-indigo-900 text-white border-none flex flex-col justify-center">
+            <div class="logic-card bg-indigo-900 text-white border-none flex flex-col justify-center p-4 rounded-2xl">
                 <h3 class="text-xl font-bold mb-4">The Hudi Lakehouse Edge</h3>
                 <p class="text-sm text-indigo-100 mb-6">
                     Apache Hudi creates thousands of small parquet/log files per commit. Pointing Hudi to FSxN instead of direct S3 prevents the "Request Cost Avalanche."
@@ -287,7 +287,7 @@
                     </li>
                 </ul>
             </div>
-            <div class="logic-card border-2 border-indigo-100 bg-indigo-50/30">
+            <div class="logic-card border-2 border-indigo-100 bg-indigo-50/30 p-4 rounded-2xl">
                 <h3 class="text-xl font-bold mb-4 text-indigo-900">Strategic Performance</h3>
                 <p class="text-sm text-slate-600 mb-6">Using FSxN as the "Hot" layer for your data lakehouse eliminates S3's eventual consistency issues during critical write operations.</p>
                 <div class="grid grid-cols-2 gap-4">
