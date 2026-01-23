@@ -118,19 +118,7 @@
             }
         }
     </style>
-    <!-- 
-        NARRATIVE PLAN:
-        1. THE PROBLEM: The S3 API "Small File" Tax (Visualizing the request overhead).
-        2. THE SOLUTION: FabricPool Packaging (1,024 blocks -> 1 Object).
-        3. THE MULTIPLIER: Deduplication & Compression (Shrinking data before it hits S3).
-        4. COST MATH: Logarithmic comparison of API requests.
-        5. REAL WORLD: Apache Hudi Lakehouse Scenario.
-        
-        VISUALIZATION CHOICES (NO SVG):
-        - API Request Volume: Logarithmic Bar Chart (Chart.js) -> Massive scale difference.
-        - Storage Footprint: Stacked Bar (Chart.js) -> Showing shrinkage via dedupe.
-        - Packaging Mechanism: CSS Grid blocks to represent block-level aggregation.
-    -->
+    <script src="analytics.js"></script>
 </head>
 <body class="p-4 md:p-10">
 
