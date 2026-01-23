@@ -10,7 +10,7 @@ const analyticsConfig = {
     // Google Analytics 4 Measurement ID
     // Format: G-XXXXXXXXXX
     // Get yours from: https://analytics.google.com/
-    measurementId: 'G-XXXXXXXXXX', // Replace with your actual GA4 Measurement ID
+    measurementId: 'G-NMXV95TXTW', // Replace with your actual GA4 Measurement ID
     
     // Enable or disable tracking
     enabled: true,
