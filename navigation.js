@@ -15,12 +15,6 @@ const navigationConfig = {
             description: "Data Operating System"
         },
         {
-            title: "Stop Going Broke",
-            url: "stop-going-broke-on-cloud-storage.html",
-            icon: "💰",
-            description: "Cost Optimization"
-        },
-        {
             title: "Storage Tax Elimination",
             url: "storage-tax-elimination.html",
             icon: "📊",
