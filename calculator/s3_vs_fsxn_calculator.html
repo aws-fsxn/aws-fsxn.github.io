@@ -45,7 +45,7 @@
                </span>
                <span id="efficiencyLabel" class="text-sm font-mono font-bold text-emerald-600">30%</span>
              </div>
-             <input type="range" id="efficiencyPercent" min="0" max="60" step="1" value="30" class="w-full h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer emerald-range">
+             <input type="range" id="efficiencyPercent" min="0" max="60" step="5" value="30" class="w-full h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer emerald-range">
              <div class="flex justify-between text-[9px] text-slate-400 mt-1 uppercase font-bold">
                <span>No Savings</span>
                <span>Max Savings (60%)</span>
@@ -63,14 +63,14 @@
             <div class="space-y-4">
                 <label class="block">
                     <span class="text-sm font-semibold text-slate-700 flex justify-between">
-                        Avg File Size <span id="fileSizeLabel">1 MB</span>
+                        Avg File Size <span id="fileSizeLabel">0.125 MB</span>
                     </span>
-                    <input type="range" id="avgFileSizeMB" min="0.1" max="100" step="0.1" value="1" class="w-full h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer mt-2">
+                    <input type="range" id="avgFileSizeMB" min="0.125" max="100" step="0.1" value="0.125" class="w-full h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer mt-2">
                 </label>
 
                 <label class="block">
                     <span class="text-sm font-semibold text-slate-700">Number of Files</span>
-                    <input type="number" id="fileCount" value="1000000" class="w-full mt-1 px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-md font-mono text-sm outline-none">
+                    <input type="number" id="fileCount" value="10000000" class="w-full mt-1 px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-md font-mono text-sm outline-none">
                 </label>
 
                 <label class="block">
@@ -109,7 +109,7 @@
 
                 <div class="pt-3 border-t border-slate-100">
                     <span class="text-xs font-bold text-slate-500 uppercase block mb-2">Cold Tier (Capacity Pool)</span>
-                    <input type="range" id="tieringPolicyPercent" min="0" max="100" step="10" value="80" class="w-full h-1.5 bg-slate-200 rounded-lg appearance-none blue-range">
+                    <input type="range" id="tieringPolicyPercent" min="0" max="100" step="5" value="80" class="w-full h-1.5 bg-slate-200 rounded-lg appearance-none blue-range">
                     <div class="flex justify-between mt-1 font-mono text-[10px] text-slate-400">
                         <span id="hotPercentLabel">Hot: 20%</span>
                         <span id="coldPercentLabel" class="font-bold text-blue-600">Cold: 80%</span>
@@ -198,8 +198,8 @@
 
     // --- State ---
     let state = {
-        avgFileSizeMB: 1,
-        fileCount: 1000000,
+        avgFileSizeMB: 0.125,
+        fileCount: 10000000,
         monthlyReadFreq: 2,
         monthlyWriteFreq: 1,
         tieringPolicyPercent: 80,
