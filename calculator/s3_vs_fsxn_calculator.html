@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>S3 vs FSx ONTAP Cost Modeler</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        input[type=range] {
+            accent-color: #2563eb;
+        }
+        .emerald-range {
+            accent-color: #059669;
+        }
+        .orange-range {
+            accent-color: #ea580c;
+        }
+        .slate-range {
+            accent-color: #475569;
+        }
+        .blue-range {
+            accent-color: #1e3a8a;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-900 font-sans p-4 md:p-8">
+
+<div class="max-w-6xl mx-auto space-y-6">
+    <!-- Header -->
+    <header class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+            <h1 class="text-2xl font-bold text-slate-800 flex items-center gap-2">
+                <i data-lucide="calculator" class="text-blue-600"></i>
+                S3 vs FSx ONTAP: Cost Model
+            </h1>
+            <p class="text-slate-500 text-sm italic">US East (Ohio) pricing with 1TB minimum SSD billing and aggregated FabricPool logic.</p>
+        </div>
+        
+        <div class="bg-white p-3 rounded-xl border border-slate-200 shadow-sm min-w-[280px]">
+             <div class="flex justify-between items-center mb-1">
+               <span class="text-xs font-bold text-slate-500 uppercase flex items-center gap-1">
+                 <i data-lucide="shield-check" class="text-emerald-500 w-4 h-4"></i> Storage Efficiency
+               </span>
+               <span id="efficiencyLabel" class="text-sm font-mono font-bold text-emerald-600">30%</span>
+             </div>
+             <input type="range" id="efficiencyPercent" min="0" max="60" step="1" value="30" class="w-full h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer emerald-range">
+             <div class="flex justify-between text-[9px] text-slate-400 mt-1 uppercase font-bold">
+               <span>No Savings</span>
+               <span>Max Savings (60%)</span>
+             </div>
+        </div>
+    </header>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Sidebar Controls -->
+        <aside class="space-y-6 bg-white p-5 rounded-xl shadow-sm border border-slate-200 self-start">
+            <h2 class="font-bold text-md flex items-center gap-2 border-b pb-2">
+                <i data-lucide="hard-drive" class="w-4 h-4 text-blue-500"></i> Configurator
+            </h2>
+            
+            <div class="space-y-4">
+                <label class="block">
+                    <span class="text-sm font-semibold text-slate-700 flex justify-between">
+                        Avg File Size <span id="fileSizeLabel">1 MB</span>
+                    </span>
+                    <input type="range" id="avgFileSizeMB" min="0.1" max="100" step="0.1" value="1" class="w-full h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer mt-2">
+                </label>
+
+                <label class="block">
+                    <span class="text-sm font-semibold text-slate-700">Number of Files</span>
+                    <input type="number" id="fileCount" value="1000000" class="w-full mt-1 px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-md font-mono text-sm outline-none">
+                </label>
+
+                <label class="block">
+                    <span class="text-sm font-semibold text-slate-700 flex justify-between">
+                        Throughput <span id="throughputLabel">128 MBps</span>
+                    </span>
+                    <input type="range" id="provisionedThroughput" min="128" max="2048" step="128" value="128" class="w-full h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer slate-range mt-2">
+                </label>
+
+                <div class="pt-3 border-t border-slate-100 space-y-3">
+                    <label class="block">
+                        <span class="text-xs font-bold text-slate-500 uppercase">Monthly Reads</span>
+                        <div class="flex items-center gap-2">
+                            <input type="range" id="monthlyReadFreq" min="0" max="10" step="1" value="2" class="flex-1 h-1.5 bg-slate-200 rounded-lg emerald-range">
+                            <span id="readFreqLabel" class="text-xs font-bold w-6">2x</span>
+                        </div>
+                    </label>
+                    <label class="block">
+                        <span class="text-xs font-bold text-slate-500 uppercase">Monthly Writes</span>
+                        <div class="flex items-center gap-2">
+                            <input type="range" id="monthlyWriteFreq" min="0" max="5" step="1" value="1" class="flex-1 h-1.5 bg-slate-200 rounded-lg orange-range">
+                            <span id="writeFreqLabel" class="text-xs font-bold w-6">1x</span>
+                        </div>
+                    </label>
+                    
+                    <div class="flex items-center justify-between bg-slate-50 p-2.5 rounded-lg border border-slate-100 mt-2">
+                        <div class="flex items-center gap-2">
+                            <i data-lucide="share-2" id="nfsIcon" class="w-4 h-4 text-slate-400"></i>
+                            <span class="text-[11px] font-bold text-slate-600 uppercase">Write via NFS/SMB</span>
+                        </div>
+                        <button id="nfsToggle" class="w-10 h-5 rounded-full relative transition-colors duration-200 bg-slate-300">
+                            <div id="nfsKnob" class="absolute top-1 left-1 w-3 h-3 bg-white rounded-full transition-transform duration-200"></div>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="pt-3 border-t border-slate-100">
+                    <span class="text-xs font-bold text-slate-500 uppercase block mb-2">Cold Tier (Capacity Pool)</span>
+                    <input type="range" id="tieringPolicyPercent" min="0" max="100" step="10" value="80" class="w-full h-1.5 bg-slate-200 rounded-lg appearance-none blue-range">
+                    <div class="flex justify-between mt-1 font-mono text-[10px] text-slate-400">
+                        <span id="hotPercentLabel">Hot: 20%</span>
+                        <span id="coldPercentLabel" class="font-bold text-blue-600">Cold: 80%</span>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="lg:col-span-2 space-y-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <!-- S3 Details -->
+                <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden flex flex-col">
+                    <div class="bg-blue-600 p-3 text-white flex justify-between items-center">
+                        <h3 class="text-sm font-bold">Amazon S3 Standard</h3>
+                        <div id="s3TotalDisplay" class="font-mono font-bold">$0.00</div>
+                    </div>
+                    <div id="s3Breakdown" class="p-4 space-y-1 flex-1 text-slate-600 text-sm">
+                        <!-- Content generated by JS -->
+                    </div>
+                </div>
+
+                <!-- FSx Details -->
+                <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden flex flex-col">
+                    <div class="bg-slate-800 p-3 text-white flex justify-between items-center">
+                        <h3 class="text-sm font-bold">FSx for NetApp ONTAP</h3>
+                        <div id="fsxTotalDisplay" class="font-mono font-bold">$0.00</div>
+                    </div>
+                    <div id="fsxBreakdown" class="p-4 space-y-1 flex-1 text-slate-600 text-sm">
+                        <!-- Content generated by JS -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Chart -->
+            <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200">
+                <h3 class="text-sm font-bold text-slate-800 mb-4 flex items-center gap-2">
+                    <i data-lucide="arrow-right-left" class="w-4 h-4 text-blue-500"></i> Monthly Cost Mix
+                </h3>
+                <div class="h-[250px] relative">
+                    <canvas id="costChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Notes -->
+            <div id="minSsdNotice" class="hidden bg-amber-50 p-3 rounded-lg border border-amber-200 flex gap-3 items-center">
+                <i data-lucide="info" class="text-amber-600 shrink-0 w-4 h-4"></i>
+                <p class="text-[10px] text-amber-800 leading-tight">
+                    <strong>SSD Sizing Logic:</strong> SSD capacity is calculated as the maximum of 1,024 GB (1TB) or [Hot Data + 15% Metadata + 10% Metadata per 10TB Capacity Pool].
+                </p>
+            </div>
+
+            <div class="bg-blue-50 p-4 rounded-xl border border-blue-100 flex gap-4 items-start">
+                <i data-lucide="zap" class="text-blue-600 shrink-0 mt-1 w-5 h-5"></i>
+                <div class="text-[11px] text-blue-800 leading-relaxed">
+                    <p class="font-bold mb-1 uppercase tracking-wider">Volume-Level Aggregation</p>
+                    <span id="protocolNote">Writes are currently via S3 Access Points.</span>
+                    <br>
+                    FabricPool aggregates blocks into <strong>4MB objects</strong>. For small files, multiple file operations are packed together, significantly reducing back-end S3 request counts.
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+
+<script>
+    // --- Constants ---
+    const PRICING = {
+        FSX: {
+            SSD_STORAGE_LIST: 0.125, 
+            CAPACITY_STORAGE_LIST: 0.0219,
+            THROUGHPUT_MBPS: 0.72,
+            CAPACITY_READ: 0.0004 / 1000, 
+            CAPACITY_WRITE: 0.005 / 1000,
+            S3_API_PUT_COPY_POST_LIST: 0.00113 / 1000,
+            S3_API_GET_OTHER: 0.00003 / 1000,
+        },
+        S3: {
+            STORAGE_STANDARD: 0.023, 
+            PUT_COPY_POST_LIST: 0.005 / 1000, 
+            GET_SELECT_OTHER: 0.0004 / 1000,
+        }
+    };
+    const ONTAP_OBJECT_SIZE_MB = 4;
+    const MIN_SSD_GB = 1024;
+
+    // --- State ---
+    let state = {
+        avgFileSizeMB: 1,
+        fileCount: 1000000,
+        monthlyReadFreq: 2,
+        monthlyWriteFreq: 1,
+        tieringPolicyPercent: 80,
+        provisionedThroughput: 128,
+        efficiencyPercent: 30,
+        isNfsSmbWrite: false
+    };
+
+    // --- Elements ---
+    const inputs = ['avgFileSizeMB', 'fileCount', 'monthlyReadFreq', 'monthlyWriteFreq', 'tieringPolicyPercent', 'provisionedThroughput', 'efficiencyPercent'];
+    const labels = {
+        avgFileSizeMB: document.getElementById('fileSizeLabel'),
+        monthlyReadFreq: document.getElementById('readFreqLabel'),
+        monthlyWriteFreq: document.getElementById('writeFreqLabel'),
+        provisionedThroughput: document.getElementById('throughputLabel'),
+        efficiencyPercent: document.getElementById('efficiencyLabel'),
+        hotPercent: document.getElementById('hotPercentLabel'),
+        coldPercent: document.getElementById('coldPercentLabel')
+    };
+
+    // --- Utils ---
+    const formatCurrency = (val) => val.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    
+    function createFormulaRow(label, calc, result, options = {}) {
+        return `
+            <div class="flex justify-between items-start py-1.5 border-b border-slate-50 last:border-0 ${options.highlight ? 'bg-amber-50 rounded px-1' : ''}">
+                <div class="flex flex-col">
+                    <span class="text-[10px] uppercase tracking-wider font-bold ${options.secondary ? 'text-orange-500' : options.highlight ? 'text-amber-700' : 'text-slate-400'}">${label}</span>
+                    <span class="text-[9px] text-slate-400 font-mono italic truncate max-w-[210px] ${options.strikethrough ? 'line-through opacity-50' : ''}">
+                        ${options.strikethrough ? 'NFS/SMB Ingest (No S3 API Fee)' : calc}
+                    </span>
+                </div>
+                <span class="font-mono text-sm ml-4 ${options.strikethrough ? 'text-slate-300' : ''}">$${formatCurrency(result)}</span>
+            </div>
+        `;
+    }
+
+    // --- Chart ---
+    let myChart;
+    function initChart() {
+        const ctx = document.getElementById('costChart').getContext('2d');
+        myChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: ['Amazon S3', 'FSx ONTAP'],
+                datasets: [
+                    { label: 'Storage', data: [0, 0], backgroundColor: '#3b82f6', barThickness: 30 },
+                    { label: 'Operations', data: [0, 0], backgroundColor: '#10b981', barThickness: 30 }
+                ]
+            },
+            options: {
+                indexAxis: 'y',
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    x: { stacked: true, grid: { display: false }, ticks: { font: { size: 10 }, callback: v => '$' + v } },
+                    y: { stacked: true, grid: { display: false }, ticks: { font: { weight: 'bold', size: 11 } } }
+                },
+                plugins: {
+                    legend: { display: false },
+                    tooltip: { callbacks: { label: (ctx) => ctx.dataset.label + ': $' + formatCurrency(ctx.parsed.x) } }
+                }
+            }
+        });
+    }
+
+    // --- Logic ---
+    function update() {
+        // Sync UI labels
+        labels.avgFileSizeMB.innerText = state.avgFileSizeMB < 1 ? Math.round(state.avgFileSizeMB * 1024) + ' KB' : state.avgFileSizeMB + ' MB';
+        labels.monthlyReadFreq.innerText = state.monthlyReadFreq + 'x';
+        labels.monthlyWriteFreq.innerText = state.monthlyWriteFreq + 'x';
+        labels.provisionedThroughput.innerText = state.provisionedThroughput + ' MBps';
+        labels.efficiencyPercent.innerText = state.efficiencyPercent + '%';
+        labels.hotPercent.innerText = 'Hot: ' + (100 - state.tieringPolicyPercent) + '%';
+        labels.coldPercent.innerText = 'Cold: ' + state.tieringPolicyPercent + '%';
+
+        // Calculations
+        const totalDataGB = (state.avgFileSizeMB * state.fileCount) / 1024;
+        const totalRequestsWrite = state.fileCount * state.monthlyWriteFreq;
+        const totalRequestsRead = state.fileCount * state.monthlyReadFreq;
+
+        // S3
+        const s3Storage = totalDataGB * PRICING.S3.STORAGE_STANDARD;
+        const s3Write = totalRequestsWrite * PRICING.S3.PUT_COPY_POST_LIST;
+        const s3Read = totalRequestsRead * PRICING.S3.GET_SELECT_OTHER;
+        const s3Total = s3Storage + s3Write + s3Read;
+
+        // FSx
+        const effFactor = (1 - state.efficiencyPercent / 100);
+        const ssdRate = PRICING.FSX.SSD_STORAGE_LIST * effFactor;
+        const capRate = PRICING.FSX.CAPACITY_STORAGE_LIST * effFactor;
+
+        const rawCapGB = totalDataGB * (state.tieringPolicyPercent / 100);
+        const rawSsdDataGB = totalDataGB * (1 - state.tieringPolicyPercent / 100);
+        
+        const capacityTB = rawCapGB / 1024;
+        const tieredMetadataGB = Math.floor(capacityTB / 10) * 1024;
+        const standardMetadataGB = rawCapGB * 0.15;
+        
+        const requiredSsdGB = rawSsdDataGB + standardMetadataGB + tieredMetadataGB;
+        const billedSsdGB = Math.max(MIN_SSD_GB, requiredSsdGB);
+        
+        const fsxSsdCost = billedSsdGB * ssdRate;
+        const fsxCapCost = rawCapGB * capRate;
+        const fsxThroughput = state.provisionedThroughput * PRICING.FSX.THROUGHPUT_MBPS;
+
+        const fsxS3Write = state.isNfsSmbWrite ? 0 : totalRequestsWrite * PRICING.FSX.S3_API_PUT_COPY_POST_LIST;
+        const fsxS3Read = totalRequestsRead * PRICING.FSX.S3_API_GET_OTHER;
+
+        const monthlyWriteVolMB = (state.fileCount * state.monthlyWriteFreq * state.avgFileSizeMB) * (state.tieringPolicyPercent / 100);
+        const monthlyReadVolMB = (state.fileCount * state.monthlyReadFreq * state.avgFileSizeMB) * (state.tieringPolicyPercent / 100);
+
+        const internalWrites = monthlyWriteVolMB / ONTAP_OBJECT_SIZE_MB;
+        const internalReads = monthlyReadVolMB / ONTAP_OBJECT_SIZE_MB;
+        const fsxFabWrite = internalWrites * PRICING.FSX.CAPACITY_WRITE;
+        const fsxFabRead = internalReads * PRICING.FSX.CAPACITY_READ;
+
+        const fsxTotal = fsxSsdCost + fsxCapCost + fsxThroughput + fsxS3Write + fsxS3Read + fsxFabWrite + fsxFabRead;
+
+        // Render UI
+        document.getElementById('s3TotalDisplay').innerText = '$' + formatCurrency(s3Total);
+        document.getElementById('s3Breakdown').innerHTML = 
+            createFormulaRow('S3 Storage', totalDataGB.toFixed(1) + ' GB × $0.023', s3Storage) +
+            createFormulaRow('S3 PUT/POST', totalRequestsWrite.toLocaleString() + ' req × $0.005/1k', s3Write) +
+            createFormulaRow('S3 GET/SELECT', totalRequestsRead.toLocaleString() + ' req × $0.0004/1k', s3Read);
+
+        document.getElementById('fsxTotalDisplay').innerText = '$' + formatCurrency(fsxTotal);
+        document.getElementById('fsxBreakdown').innerHTML = 
+            createFormulaRow('SSD Storage Billed', billedSsdGB.toFixed(0) + ' GB (Incl. Metadata) × $' + ssdRate.toFixed(4), fsxSsdCost, { highlight: billedSsdGB === MIN_SSD_GB }) +
+            createFormulaRow('Capacity Storage', rawCapGB.toFixed(1) + ' GB × $' + capRate.toFixed(4), fsxCapCost) +
+            createFormulaRow('Throughput', state.provisionedThroughput + ' MBps × $0.72', fsxThroughput, { isBold: true }) +
+            createFormulaRow('S3 AP: Write', totalRequestsWrite.toLocaleString() + ' req × $0.00113/1k', fsxS3Write, { strikethrough: state.isNfsSmbWrite }) +
+            createFormulaRow('S3 AP: Read', totalRequestsRead.toLocaleString() + ' req × $0.00003/1k', fsxS3Read) +
+            '<div class="mt-2 pt-2 border-t border-dashed border-slate-200">' +
+            createFormulaRow('FabricPool: Write', Math.max(0, internalWrites).toLocaleString(undefined, {maximumFractionDigits: 0}) + ' objects (Aggregated 4MB) × $0.005/1k', fsxFabWrite, { secondary: true }) +
+            createFormulaRow('FabricPool: Read', Math.max(0, internalReads).toLocaleString(undefined, {maximumFractionDigits: 0}) + ' objects (Aggregated 4MB) × $0.0004/1k', fsxFabRead, { secondary: true }) +
+            '</div>';
+
+        document.getElementById('minSsdNotice').classList.toggle('hidden', billedSsdGB > MIN_SSD_GB);
+        document.getElementById('protocolNote').innerText = state.isNfsSmbWrite ? "Writes are currently via NFS/SMB (no S3 API charges applied for ingest)." : "Writes are currently via S3 Access Points.";
+
+        // Update Chart
+        myChart.data.datasets[0].data = [s3Storage, fsxSsdCost + fsxCapCost];
+        myChart.data.datasets[1].data = [s3Write + s3Read, fsxThroughput + fsxS3Write + fsxS3Read + fsxFabWrite + fsxFabRead];
+        myChart.update();
+    }
+
+    // --- Events ---
+    inputs.forEach(id => {
+        const el = document.getElementById(id);
+        el.addEventListener('input', (e) => {
+            state[id] = parseFloat(e.target.value);
+            update();
+        });
+    });
+
+    const toggleBtn = document.getElementById('nfsToggle');
+    toggleBtn.addEventListener('click', () => {
+        state.isNfsSmbWrite = !state.isNfsSmbWrite;
+        toggleBtn.classList.toggle('bg-blue-600', state.isNfsSmbWrite);
+        toggleBtn.classList.toggle('bg-slate-300', !state.isNfsSmbWrite);
+        document.getElementById('nfsKnob').style.transform = state.isNfsSmbWrite ? 'translateX(1.5rem)' : 'translateX(0)';
+        document.getElementById('nfsIcon').classList.toggle('text-blue-600', state.isNfsSmbWrite);
+        document.getElementById('nfsIcon').classList.toggle('text-slate-400', !state.isNfsSmbWrite);
+        update();
+    });
+
+    // Init
+    window.onload = () => {
+        lucide.createIcons();
+        initChart();
+        update();
+    };
+</script>
+
+</body>
+</html>
