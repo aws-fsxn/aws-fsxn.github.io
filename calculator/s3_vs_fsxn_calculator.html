@@ -165,10 +165,10 @@
             <div class="bg-blue-50 p-4 rounded-xl border border-blue-100 flex gap-4 items-start">
                 <i data-lucide="zap" class="text-blue-600 shrink-0 mt-1 w-5 h-5"></i>
                 <div class="text-[11px] text-blue-800 leading-relaxed">
-                    <p class="font-bold mb-1 uppercase tracking-wider">Volume-Level Aggregation</p>
+                    <p class="font-bold mb-1 uppercase tracking-wider">Volume-Level Aggregation & Efficiency</p>
                     <span id="protocolNote">Writes are currently via S3 Access Points.</span>
                     <br>
-                    FabricPool aggregates blocks into <strong>4MB objects</strong>. For small files, multiple file operations are packed together, significantly reducing back-end S3 request counts.
+                    FabricPool aggregates blocks into <strong>4MB objects</strong>. Storage efficiency (compression/dedupe) is applied <strong>before</strong> tiering, reducing the total capacity moved and the resulting S3 request count.
                 </div>
             </div>
         </main>
@@ -224,6 +224,11 @@
     const formatCurrency = (val) => val.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     
     function createFormulaRow(label, calc, result, options = {}) {
+        let subDetails = '';
+        if (options.subDetails) {
+            subDetails = `<div class="text-[8px] text-slate-400 mt-0.5 leading-tight">${options.subDetails}</div>`;
+        }
+
         return `
             <div class="flex justify-between items-start py-1.5 border-b border-slate-50 last:border-0 ${options.highlight ? 'bg-amber-50 rounded px-1' : ''}">
                 <div class="flex flex-col">
@@ -231,6 +236,7 @@
                     <span class="text-[9px] text-slate-400 font-mono italic truncate max-w-[210px] ${options.strikethrough ? 'line-through opacity-50' : ''}">
                         ${options.strikethrough ? 'NFS/SMB Ingest (No S3 API Fee)' : calc}
                     </span>
+                    ${subDetails}
                 </div>
                 <span class="font-mono text-sm ml-4 ${options.strikethrough ? 'text-slate-300' : ''}">$${formatCurrency(result)}</span>
             </div>
@@ -288,7 +294,7 @@
         const s3Read = totalRequestsRead * PRICING.S3.GET_SELECT_OTHER;
         const s3Total = s3Storage + s3Write + s3Read;
 
-        // FSx
+        // FSxN
         const effFactor = (1 - state.efficiencyPercent / 100);
         const ssdRate = PRICING.FSX.SSD_STORAGE_LIST * effFactor;
         const capRate = PRICING.FSX.CAPACITY_STORAGE_LIST * effFactor;
@@ -310,8 +316,9 @@
         const fsxS3Write = state.isNfsSmbWrite ? 0 : totalRequestsWrite * PRICING.FSX.S3_API_PUT_COPY_POST_LIST;
         const fsxS3Read = totalRequestsRead * PRICING.FSX.S3_API_GET_OTHER;
 
-        const monthlyWriteVolMB = (state.fileCount * state.monthlyWriteFreq * state.avgFileSizeMB) * (state.tieringPolicyPercent / 100);
-        const monthlyReadVolMB = (state.fileCount * state.monthlyReadFreq * state.avgFileSizeMB) * (state.tieringPolicyPercent / 100);
+        // FabricPool logic incorporating storage efficiency
+        const monthlyWriteVolMB = (state.fileCount * state.monthlyWriteFreq * state.avgFileSizeMB * effFactor) * (state.tieringPolicyPercent / 100);
+        const monthlyReadVolMB = (state.fileCount * state.monthlyReadFreq * state.avgFileSizeMB * effFactor) * (state.tieringPolicyPercent / 100);
 
         const internalWrites = monthlyWriteVolMB / ONTAP_OBJECT_SIZE_MB;
         const internalReads = monthlyReadVolMB / ONTAP_OBJECT_SIZE_MB;
@@ -335,8 +342,14 @@
             createFormulaRow('S3 AP: Write', totalRequestsWrite.toLocaleString() + ' req × $0.00113/1k', fsxS3Write, { strikethrough: state.isNfsSmbWrite }) +
             createFormulaRow('S3 AP: Read', totalRequestsRead.toLocaleString() + ' req × $0.00003/1k', fsxS3Read) +
             '<div class="mt-2 pt-2 border-t border-dashed border-slate-200">' +
-            createFormulaRow('FabricPool: Write', Math.max(0, internalWrites).toLocaleString(undefined, {maximumFractionDigits: 0}) + ' objects (Aggregated 4MB) × $0.005/1k', fsxFabWrite, { secondary: true }) +
-            createFormulaRow('FabricPool: Read', Math.max(0, internalReads).toLocaleString(undefined, {maximumFractionDigits: 0}) + ' objects (Aggregated 4MB) × $0.0004/1k', fsxFabRead, { secondary: true }) +
+            createFormulaRow('Capacity Pool: Write', Math.max(0, internalWrites).toLocaleString(undefined, {maximumFractionDigits: 0}) + ' objects (4MB) × $0.005/1k', fsxFabWrite, { 
+                secondary: true,
+                subDetails: `Tiering Vol: ${formatCurrency(monthlyWriteVolMB / 1024)} GB (Eff. Applied) | Ratio: ${Math.round(totalRequestsWrite / Math.max(1, internalWrites))}:1 files/object`
+            }) +
+            createFormulaRow('Capacity Pool: Read', Math.max(0, internalReads).toLocaleString(undefined, {maximumFractionDigits: 0}) + ' objects (Aggregated 4MB) × $0.0004/1k', fsxFabRead, { 
+                secondary: true,
+                subDetails: `Tiering Vol: ${formatCurrency(monthlyReadVolMB / 1024)} GB (Eff. Applied) | Ratio: ${Math.round(totalRequestsRead / Math.max(1, internalReads))}:1 files/object`
+            }) +
             '</div>';
 
         document.getElementById('minSsdNotice').classList.toggle('hidden', billedSsdGB > MIN_SSD_GB);
