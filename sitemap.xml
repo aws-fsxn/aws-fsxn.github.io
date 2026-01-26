@@ -12,14 +12,6 @@
         <priority>1.0</priority>
     </url>
     
-    <!-- Cloud Storage Guide -->
-    <url>
-        <loc>https://aws-fsxn.github.io/stop-going-broke-on-cloud-storage.html</loc>
-        <lastmod>2026-01-16</lastmod>
-        <changefreq>monthly</changefreq>
-        <priority>0.9</priority>
-    </url>
-    
     <!-- Storage Tax Elimination -->
     <url>
         <loc>https://aws-fsxn.github.io/storage-tax-elimination.html</loc>
