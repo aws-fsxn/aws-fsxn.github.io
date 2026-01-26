@@ -42,7 +42,7 @@ const navigationConfig = {
             title: "File Services Comparison",
             url: "file-services-comparison.html",
             icon: "⚖️",
-            description: "EFS, FSxZ vs FSx"
+            description: "EFS, FSxZ vs FSxN"
         },
         {
             title: "Storage Services Guide",

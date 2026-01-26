@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AWS File Storage Tiering Comparison: EFS vs FSx | AWS FSxN</title>
+    <title>AWS File Storage Tiering Comparison: EFS & FSx for OpenZFS vs FSx for ONTAP | AWS FSxN</title>
     
     <!-- SEO Meta Tags -->
-    <meta name="description" content="Compare AWS file storage services: EFS, FSx for Windows, FSx for Lustre, and FSx for NetApp ONTAP. Discover which solution offers the best tiering, performance, and cost optimization.">
-    <meta name="keywords" content="AWS file storage comparison, EFS vs FSx, FSx ONTAP, FSx Windows, FSx Lustre, cloud file storage, AWS storage tiering, file services comparison">
+    <meta name="description" content="Compare AWS file storage services: EFS, FSx for Windows, FSx for Lustre, FSx for OpenZFS, and FSx for NetApp ONTAP. Discover which solution offers the best tiering, performance, and cost optimization.">
+    <meta name="keywords" content="AWS file storage comparison, EFS vs FSx, FSx for NetApp ONTAP, FSx for Windows, FSx for Lustre, FSx for OpenZFS, cloud file storage, AWS storage tiering, file services comparison">
     <meta name="author" content="AWS FSxN">
     <meta name="robots" content="index, follow">
     <link rel="canonical" href="https://aws-fsxn.github.io/file-services-comparison.html">
@@ -15,14 +15,14 @@
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="article">
     <meta property="og:url" content="https://aws-fsxn.github.io/file-services-comparison.html">
-    <meta property="og:title" content="AWS File Storage Tiering Comparison: EFS vs FSx">
+    <meta property="og:title" content="AWS File Storage Tiering Comparison: EFS vs FSx for ONTAP">
     <meta property="og:description" content="Compare AWS file storage services: EFS, FSx for Windows, FSx for Lustre, and FSx for NetApp ONTAP. Find the best tiering and cost optimization solution.">
     <meta property="og:site_name" content="AWS FSxN">
     
     <!-- Twitter Card -->
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:url" content="https://aws-fsxn.github.io/file-services-comparison.html">
-    <meta name="twitter:title" content="AWS File Storage Tiering Comparison: EFS vs FSx">
+    <meta name="twitter:title" content="AWS File Storage Tiering Comparison: EFS vs FSx for ONTAP">
     <meta name="twitter:description" content="Comprehensive comparison of AWS file storage services with tiering capabilities, performance metrics, and cost optimization.">
     
     <script src="https://cdn.tailwindcss.com"></script>
@@ -33,7 +33,7 @@
     {
         "@context": "https://schema.org",
         "@type": "TechArticle",
-        "headline": "AWS File Storage Tiering Comparison: EFS vs FSx",
+        "headline": "AWS File Storage Tiering Comparison: EFS vs FSx for ONTAP",
         "description": "Compare AWS file storage services: EFS, FSx for Windows, FSx for Lustre, and FSx for NetApp ONTAP. Discover which solution offers the best tiering, performance, and cost optimization.",
         "author": {
             "@type": "Organization",
@@ -96,22 +96,6 @@
             }
         }
     </style>
-    <!-- 
-        HTML COMMENT: 
-        1. NO MERMAID JS was used in this file.
-        2. NO SVG graphics were used in this file. 
-        3. Visualizations use Canvas (Chart.js). 
-        4. Icons and diagrams use Tailwind CSS containers and Unicode.
-
-        NARRATIVE PLAN:
-        - Introduction: The spectrum of AWS File storage.
-        - Visualization 1: Comparison Radar (Maturity, Granularity, Cost, Performance).
-        - Visualization 2: The "Read Penalty" - explaining latency impact.
-        - Qualitative Breakdown: Pro/Con grid for EFS, OpenZFS, and ONTAP.
-        - Conclusion: Summary of the "Best Fit".
-
-        PALETTE: "Brilliant Blues" - Deep Blue (#1E3A8A), Bright Blue (#3B82F6), Accent Amber (#F59E0B).
-    -->
     
     <!-- Material Design Icons -->
     <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
@@ -204,8 +188,8 @@
                 <div class="grid grid-cols-4 bg-slate-100 p-3 font-bold text-sm">
                     <div>Attribute</div>
                     <div>Amazon EFS</div>
-                    <div>FSx OpenZFS</div>
-                    <div>FSx ONTAP</div>
+                    <div>FSx for OpenZFS</div>
+                    <div>FSx for ONTAP</div>
                 </div>
                 <div class="grid grid-cols-4 border-b p-3 text-sm">
                     <div class="font-semibold">Tiering Level</div>
@@ -271,7 +255,7 @@
                 labels: [wrapLabel('Tiering Maturity'), wrapLabel('Cost Efficiency'), wrapLabel('Granular Control'), wrapLabel('Management Ease'), wrapLabel('Protocol Flexibility')],
                 datasets: [
                     {
-                        label: 'FSx ONTAP',
+                        label: 'FSx for ONTAP',
                         data: [5, 5, 5, 4, 5],
                         backgroundColor: 'rgba(30, 58, 138, 0.2)',
                         borderColor: '#1E3A8A',
@@ -285,7 +269,7 @@
                         pointBackgroundColor: '#F59E0B'
                     },
                     {
-                        label: 'FSx OpenZFS',
+                        label: 'FSx for OpenZFS',
                         data: [3, 4, 3, 4, 3],
                         backgroundColor: 'rgba(16, 185, 129, 0.2)',
                         borderColor: '#10B981',
