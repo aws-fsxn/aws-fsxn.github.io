@@ -1,0 +1,662 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FlexCache: Escape Compute Scarcity | AWS FSxN</title>
+
+    <!-- SEO Meta Tags -->
+    <meta name="description" content="Use Amazon FSx for NetApp ONTAP FlexCache to cache data closer to GPU and compute resources in any AWS region or AZ — no data copies, no latency tax, no compute constraints.">
+    <meta name="keywords" content="FSx ONTAP FlexCache, GPU compute scarcity, data caching, multi-region AI, low-latency storage, read caching, Amazon FSx, NetApp ONTAP cache">
+    <meta name="author" content="AWS FSxN">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://aws-fsxn.github.io/flexcache.html">
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="article">
+    <meta property="og:url" content="https://aws-fsxn.github.io/flexcache.html">
+    <meta property="og:title" content="FlexCache: Escape Compute Scarcity with Intelligent Data Caching">
+    <meta property="og:description" content="Cache data across regions instead of copying it. FSx ONTAP FlexCache unlocks GPU capacity wherever it exists — no migration, no duplication.">
+    <meta property="og:site_name" content="AWS FSxN">
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:url" content="https://aws-fsxn.github.io/flexcache.html">
+    <meta name="twitter:title" content="FlexCache: Escape Compute Scarcity with Intelligent Data Caching">
+    <meta name="twitter:description" content="Cache data across regions instead of copying it. FSx ONTAP FlexCache unlocks GPU capacity wherever it exists.">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- JSON-LD Structured Data -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "TechArticle",
+        "headline": "FlexCache: Escape Compute Scarcity with Intelligent Data Caching",
+        "description": "Use Amazon FSx for NetApp ONTAP FlexCache to cache data closer to GPU and compute resources in any AWS region or AZ — no data copies, no latency tax, no compute constraints.",
+        "author": {
+            "@type": "Organization",
+            "name": "AWS FSxN"
+        },
+        "publisher": {
+            "@type": "Organization",
+            "name": "AWS FSxN"
+        },
+        "datePublished": "2026-04-07",
+        "dateModified": "2026-04-07",
+        "mainEntityOfPage": {
+            "@type": "WebPage",
+            "@id": "https://aws-fsxn.github.io/flexcache.html"
+        },
+        "about": [
+            { "@type": "Thing", "name": "FlexCache" },
+            { "@type": "Thing", "name": "GPU Compute Scarcity" },
+            { "@type": "Thing", "name": "Multi-Region AI/ML" }
+        ],
+        "keywords": "FSx ONTAP FlexCache, GPU compute scarcity, multi-region caching, AI/ML storage, low-latency data access"
+    }
+    </script>
+
+    <style>
+        :root {
+            --primary: #1E3A8A;
+            --accent: #F59E0B;
+            --success: #10B981;
+            --bg-canvas: #F8FAFC;
+        }
+        body { font-family: 'Inter', sans-serif; background-color: var(--bg-canvas); color: #1E293B; }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 650px;
+            margin: auto;
+            height: 350px;
+        }
+        .card { background: white; padding: 1.5rem; border-radius: 1rem; border: 1px solid #e2e8f0; transition: box-shadow 0.2s; }
+        .card:hover { box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
+
+        .flow-arrow {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #94a3b8;
+            font-size: 1.5rem;
+        }
+
+        /* Navigation offset for main content */
+        .main-content {
+            margin-left: 0;
+            transition: margin-left 0.3s ease;
+        }
+        @media (min-width: 768px) {
+            .main-content {
+                margin-left: 288px;
+            }
+        }
+    </style>
+
+    <!-- Material Design Icons -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+
+    <!-- Google Analytics -->
+    <script src="analytics.js"></script>
+</head>
+<body class="p-4 md:p-10">
+
+<!-- Load Navigation -->
+<script src="navigation.js"></script>
+
+<div class="main-content">
+
+    <header class="max-w-5xl mx-auto text-center mb-16">
+        <div class="inline-block bg-purple-100 text-purple-700 px-4 py-1 rounded-full text-sm font-bold mb-4">FLEXCACHE — SMART DATA PROXIMITY</div>
+        <h1 class="text-4xl md:text-6xl font-black text-slate-900 leading-tight">
+            Cache Smarter,<br><span class="text-purple-700">Compute Anywhere</span>
+        </h1>
+        <p class="mt-4 text-xl text-slate-600 max-w-3xl mx-auto">
+            GPU capacity is scarce. Your data shouldn't be the bottleneck. Amazon FSx for NetApp ONTAP FlexCache moves your data <em>logically</em> — not physically — to wherever compute exists.
+        </p>
+    </header>
+
+    <main class="max-w-6xl mx-auto space-y-14">
+
+        <!-- SECTION 1: THE PROBLEM — GPU/Compute Scarcity -->
+        <section class="grid grid-cols-1 md:grid-cols-2 gap-10 items-center">
+            <div class="space-y-6">
+                <div class="inline-block bg-red-100 text-red-700 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider">The Problem</div>
+                <h2 class="text-3xl font-bold">GPU Scarcity is a Storage Problem</h2>
+                <p class="text-slate-600">
+                    AI and ML workloads are exploding, but GPU and accelerated compute capacity is unevenly distributed across AWS regions and availability zones.
+                    When your data lives in <strong>us-east-1</strong> but available GPU capacity is in <strong>us-west-2</strong>,
+                    you face an impossible choice: wait months for GPU allocation or perform an expensive, time-consuming full data migration.
+                </p>
+                <div class="space-y-3">
+                    <div class="flex items-start space-x-3 text-red-500 font-semibold">
+                        <span class="mt-0.5">✕</span> <span>GPU/accelerator instances unavailable in your data's home region</span>
+                    </div>
+                    <div class="flex items-start space-x-3 text-red-500 font-semibold">
+                        <span class="mt-0.5">✕</span> <span>Full data migration takes days or weeks and costs millions in egress</span>
+                    </div>
+                    <div class="flex items-start space-x-3 text-red-500 font-semibold">
+                        <span class="mt-0.5">✕</span> <span>Duplicated datasets drift out of sync — introducing model training errors</span>
+                    </div>
+                    <div class="flex items-start space-x-3 text-red-500 font-semibold">
+                        <span class="mt-0.5">✕</span> <span>Cross-region latency makes real-time reads from the origin impractical</span>
+                    </div>
+                </div>
+            </div>
+            <div class="card">
+                <div class="chart-container">
+                    <canvas id="migrationCostChart"></canvas>
+                </div>
+                <p class="text-xs text-center text-slate-400 mt-4">Estimated cost impact: Data copy vs. FlexCache for a 500 TB dataset</p>
+            </div>
+        </section>
+
+        <!-- SECTION 2: WHAT IS FLEXCACHE -->
+        <section class="card bg-slate-900 text-white border-none p-10">
+            <div class="text-center mb-8">
+                <div class="inline-block bg-purple-600 text-white px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider mb-3">The Solution</div>
+                <h2 class="text-3xl font-bold">FSx ONTAP FlexCache</h2>
+                <p class="mt-2 text-slate-300 max-w-2xl mx-auto">
+                    FlexCache creates a sparse, read-through cache volume that appears as a full dataset to compute nodes — 
+                    without physically copying data. Only the blocks your workload actually reads are transferred and cached.
+                </p>
+            </div>
+
+            <!-- Architecture Flow -->
+            <div class="flex flex-col lg:flex-row justify-center items-center gap-4 mt-8">
+
+                <!-- Origin Region -->
+                <div class="flex flex-col items-center bg-slate-800 rounded-2xl p-6 border border-slate-700 w-full lg:w-56 text-center">
+                    <div class="text-4xl mb-3">🗄️</div>
+                    <div class="font-bold text-lg">Origin Volume</div>
+                    <div class="text-xs text-slate-400 mt-1">FSx for ONTAP</div>
+                    <div class="mt-3 bg-slate-700 rounded-lg px-3 py-1 text-xs text-blue-300 font-mono">us-east-1</div>
+                    <div class="mt-2 text-xs text-slate-400">Full dataset lives here.<br>Single source of truth.</div>
+                </div>
+
+                <!-- Arrow -->
+                <div class="flow-arrow lg:rotate-0 rotate-90">
+                    <div class="flex flex-col items-center text-purple-400">
+                        <div class="text-xs font-bold mb-1">Read-through</div>
+                        <div class="text-2xl">→</div>
+                        <div class="text-xs text-slate-500 mt-1">on-demand blocks</div>
+                    </div>
+                </div>
+
+                <!-- FlexCache Volume -->
+                <div class="flex flex-col items-center bg-purple-900 rounded-2xl p-6 border border-purple-600 w-full lg:w-56 text-center shadow-2xl shadow-purple-900/50">
+                    <div class="text-4xl mb-3">⚡</div>
+                    <div class="font-bold text-lg text-purple-200">FlexCache Volume</div>
+                    <div class="text-xs text-purple-300 mt-1">FSx for ONTAP</div>
+                    <div class="mt-3 bg-purple-800 rounded-lg px-3 py-1 text-xs text-purple-200 font-mono">us-west-2</div>
+                    <div class="mt-2 text-xs text-purple-300">Sparse cache.<br>Only hot blocks stored.</div>
+                </div>
+
+                <!-- Arrow -->
+                <div class="flow-arrow lg:rotate-0 rotate-90">
+                    <div class="flex flex-col items-center text-green-400">
+                        <div class="text-xs font-bold mb-1">Low-latency</div>
+                        <div class="text-2xl">→</div>
+                        <div class="text-xs text-slate-500 mt-1">NFS / SMB reads</div>
+                    </div>
+                </div>
+
+                <!-- GPU Compute -->
+                <div class="flex flex-col items-center bg-slate-800 rounded-2xl p-6 border border-slate-700 w-full lg:w-56 text-center">
+                    <div class="text-4xl mb-3">🖥️</div>
+                    <div class="font-bold text-lg">GPU Cluster</div>
+                    <div class="text-xs text-slate-400 mt-1">p4d / trn1 / inf2</div>
+                    <div class="mt-3 bg-slate-700 rounded-lg px-3 py-1 text-xs text-green-300 font-mono">us-west-2</div>
+                    <div class="mt-2 text-xs text-slate-400">Reads from local cache.<br>Full training throughput.</div>
+                </div>
+            </div>
+
+            <!-- Key Properties -->
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 mt-10 text-sm">
+                <div class="bg-slate-800 rounded-xl p-4 border border-slate-700 text-center">
+                    <div class="text-2xl mb-2">🔄</div>
+                    <div class="font-bold text-white">Single Source of Truth</div>
+                    <div class="text-slate-400 mt-1">Writes always flow back to the origin. No dataset drift, no reconciliation headaches.</div>
+                </div>
+                <div class="bg-slate-800 rounded-xl p-4 border border-slate-700 text-center">
+                    <div class="text-2xl mb-2">💾</div>
+                    <div class="font-bold text-white">Pay for What You Read</div>
+                    <div class="text-slate-400 mt-1">Only accessed blocks are cached. A 500 TB dataset may need only 50 TB of local cache storage.</div>
+                </div>
+                <div class="bg-slate-800 rounded-xl p-4 border border-slate-700 text-center">
+                    <div class="text-2xl mb-2">🌐</div>
+                    <div class="font-bold text-white">Native NFS / SMB</div>
+                    <div class="text-slate-400 mt-1">No app changes required. GPU training scripts mount the cache volume exactly like a local filesystem.</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 3: BUSINESS VALUE -->
+        <section class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+            <div class="space-y-6">
+                <div class="inline-block bg-green-100 text-green-700 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider">Business Value</div>
+                <h2 class="text-3xl font-bold">Break Free from Compute Constraints</h2>
+                <p class="text-slate-600">
+                    FlexCache turns a capacity problem into a non-event. Instead of waiting for GPU allocations to open up in your home region,
+                    spin up a cache in any region where instances are available and start training within minutes.
+                </p>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div class="p-4 bg-white rounded-xl border border-slate-100 shadow-sm">
+                        <div class="text-2xl mb-2">🚀</div>
+                        <h4 class="font-bold text-blue-800 mb-1">Time-to-Train</h4>
+                        <p class="text-xs text-slate-500">Start training in hours instead of weeks. No waiting for data migration pipelines.</p>
+                    </div>
+                    <div class="p-4 bg-white rounded-xl border border-slate-100 shadow-sm">
+                        <div class="text-2xl mb-2">💰</div>
+                        <h4 class="font-bold text-blue-800 mb-1">Egress Savings</h4>
+                        <p class="text-xs text-slate-500">Cache only the data you read. Avoid paying to transfer a 500 TB dataset you use 10% of.</p>
+                    </div>
+                    <div class="p-4 bg-white rounded-xl border border-slate-100 shadow-sm">
+                        <div class="text-2xl mb-2">🔒</div>
+                        <h4 class="font-bold text-blue-800 mb-1">Data Governance</h4>
+                        <p class="text-xs text-slate-500">Origin remains the master copy — security policies, encryption, and auditing stay centralized.</p>
+                    </div>
+                    <div class="p-4 bg-white rounded-xl border border-slate-100 shadow-sm">
+                        <div class="text-2xl mb-2">⚡</div>
+                        <h4 class="font-bold text-blue-800 mb-1">Low Latency</h4>
+                        <p class="text-xs text-slate-500">After the first read, hot blocks are served from the local cache at full NVMe/SSD speeds.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="card">
+                <div class="chart-container">
+                    <canvas id="latencyComparisonChart"></canvas>
+                </div>
+                <p class="text-xs text-center text-slate-400 mt-4">Typical read latency: cross-region direct access vs. FlexCache (after warm-up)</p>
+            </div>
+        </section>
+
+        <!-- SECTION 4: ADDITIONAL USE CASES -->
+        <section>
+            <div class="text-center mb-10">
+                <div class="inline-block bg-amber-100 text-amber-700 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider mb-3">More Use Cases</div>
+                <h2 class="text-3xl font-bold">FlexCache Beyond GPU Scarcity</h2>
+                <p class="mt-2 text-slate-600 max-w-2xl mx-auto">
+                    Any workload that reads data across geographic or network boundaries benefits from bringing the data closer to compute.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+
+                <div class="card space-y-3">
+                    <div class="flex items-center space-x-3">
+                        <div class="text-3xl">🏭</div>
+                        <div>
+                            <h3 class="font-bold text-blue-800">Multi-AZ Read Scaling</h3>
+                            <div class="text-xs text-slate-400">High-Availability Reads</div>
+                        </div>
+                    </div>
+                    <p class="text-sm text-slate-600">
+                        Deploy FlexCache volumes in multiple AZs within the same region. Read-heavy applications (web serving, analytics dashboards) 
+                        get sub-millisecond local reads without any data replication overhead.
+                    </p>
+                    <div class="flex flex-wrap gap-2">
+                        <span class="text-xs bg-blue-50 text-blue-700 px-2 py-1 rounded-full font-medium">Read scale-out</span>
+                        <span class="text-xs bg-blue-50 text-blue-700 px-2 py-1 rounded-full font-medium">AZ affinity</span>
+                    </div>
+                </div>
+
+                <div class="card space-y-3">
+                    <div class="flex items-center space-x-3">
+                        <div class="text-3xl">🧪</div>
+                        <div>
+                            <h3 class="font-bold text-blue-800">Dev / Test Acceleration</h3>
+                            <div class="text-xs text-slate-400">Lightweight Sandboxes</div>
+                        </div>
+                    </div>
+                    <p class="text-sm text-slate-600">
+                        Give each developer team a FlexCache volume pointing at the production dataset. 
+                        Teams read live data without cloning terabytes — and writes are redirected to isolated sandbox volumes, 
+                        keeping production untouched.
+                    </p>
+                    <div class="flex flex-wrap gap-2">
+                        <span class="text-xs bg-green-50 text-green-700 px-2 py-1 rounded-full font-medium">Zero copy</span>
+                        <span class="text-xs bg-green-50 text-green-700 px-2 py-1 rounded-full font-medium">Instant provisioning</span>
+                    </div>
+                </div>
+
+                <div class="card space-y-3">
+                    <div class="flex items-center space-x-3">
+                        <div class="text-3xl">🌍</div>
+                        <div>
+                            <h3 class="font-bold text-blue-800">Global Collaboration</h3>
+                            <div class="text-xs text-slate-400">Distributed Teams</div>
+                        </div>
+                    </div>
+                    <p class="text-sm text-slate-600">
+                        Engineering teams in APAC and EU read the same media, seismic, genomic, or design datasets without 
+                        suffering cross-Atlantic or cross-Pacific latency. Each region gets a FlexCache; the origin stays authoritative.
+                    </p>
+                    <div class="flex flex-wrap gap-2">
+                        <span class="text-xs bg-purple-50 text-purple-700 px-2 py-1 rounded-full font-medium">Multi-region</span>
+                        <span class="text-xs bg-purple-50 text-purple-700 px-2 py-1 rounded-full font-medium">Single namespace</span>
+                    </div>
+                </div>
+
+                <div class="card space-y-3">
+                    <div class="flex items-center space-x-3">
+                        <div class="text-3xl">☁️</div>
+                        <div>
+                            <h3 class="font-bold text-blue-800">Hybrid Cloud Bursting</h3>
+                            <div class="text-xs text-slate-400">On-Prem to Cloud</div>
+                        </div>
+                    </div>
+                    <p class="text-sm text-slate-600">
+                        On-premises data served via ONTAP can be cached in AWS for burst compute jobs. 
+                        FlexCache over AWS Direct Connect gives cloud workloads near-local read latency against on-prem datasets — 
+                        no lift-and-shift required.
+                    </p>
+                    <div class="flex flex-wrap gap-2">
+                        <span class="text-xs bg-amber-50 text-amber-700 px-2 py-1 rounded-full font-medium">Direct Connect</span>
+                        <span class="text-xs bg-amber-50 text-amber-700 px-2 py-1 rounded-full font-medium">Hybrid</span>
+                    </div>
+                </div>
+
+                <div class="card space-y-3">
+                    <div class="flex items-center space-x-3">
+                        <div class="text-3xl">🛡️</div>
+                        <div>
+                            <h3 class="font-bold text-blue-800">DR Read Access</h3>
+                            <div class="text-xs text-slate-400">Active Disaster Recovery</div>
+                        </div>
+                    </div>
+                    <p class="text-sm text-slate-600">
+                        DR sites often sit idle, burning budget. FlexCache lets the DR region serve live read traffic — 
+                        reporting, analytics, model inference — while SnapMirror keeps the origin authoritative. 
+                        Your DR investment starts delivering ROI on day one.
+                    </p>
+                    <div class="flex flex-wrap gap-2">
+                        <span class="text-xs bg-red-50 text-red-700 px-2 py-1 rounded-full font-medium">Active-passive</span>
+                        <span class="text-xs bg-red-50 text-red-700 px-2 py-1 rounded-full font-medium">Read offload</span>
+                    </div>
+                </div>
+
+                <div class="card space-y-3">
+                    <div class="flex items-center space-x-3">
+                        <div class="text-3xl">📡</div>
+                        <div>
+                            <h3 class="font-bold text-blue-800">Edge / Satellite Offices</h3>
+                            <div class="text-xs text-slate-400">Remote Data Locality</div>
+                        </div>
+                    </div>
+                    <p class="text-sm text-slate-600">
+                        Retail, manufacturing, and media organizations with remote sites can run FlexCache in the nearest AWS region, 
+                        pulling only the files each site actually needs. Employees get fast local-equivalent performance without 
+                        maintaining separate storage infrastructure at every site.
+                    </p>
+                    <div class="flex flex-wrap gap-2">
+                        <span class="text-xs bg-slate-100 text-slate-700 px-2 py-1 rounded-full font-medium">Edge</span>
+                        <span class="text-xs bg-slate-100 text-slate-700 px-2 py-1 rounded-full font-medium">Distributed</span>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- SECTION 5: HOW IT COMPARES -->
+        <section class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+            <div class="card order-2 lg:order-1">
+                <div class="chart-container">
+                    <canvas id="approachRadar"></canvas>
+                </div>
+                <p class="text-xs text-center text-slate-400 mt-4">Solution approach comparison across key dimensions</p>
+            </div>
+            <div class="space-y-6 order-1 lg:order-2">
+                <div class="inline-block bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider">Why FlexCache Wins</div>
+                <h2 class="text-3xl font-bold">vs. The Alternatives</h2>
+                <p class="text-slate-600">
+                    Teams facing compute scarcity typically reach for one of three alternatives — each with significant drawbacks.
+                </p>
+                <div class="space-y-4">
+                    <div class="flex items-start space-x-4 p-4 bg-red-50 rounded-xl border border-red-100">
+                        <div class="text-2xl">📦</div>
+                        <div>
+                            <h4 class="font-bold text-red-800">Full Dataset Copy (S3 / EFS)</h4>
+                            <p class="text-xs text-slate-600 mt-1">Weeks of transfer time, full egress cost, ongoing sync complexity. Datasets drift out of sync, causing silent training errors.</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start space-x-4 p-4 bg-amber-50 rounded-xl border border-amber-100">
+                        <div class="text-2xl">⏳</div>
+                        <div>
+                            <h4 class="font-bold text-amber-800">Wait for GPU Availability</h4>
+                            <p class="text-xs text-slate-600 mt-1">Weeks or months of delay. Missed product deadlines, wasted engineering cycles, and competitive disadvantage.</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start space-x-4 p-4 bg-orange-50 rounded-xl border border-orange-100">
+                        <div class="text-2xl">🌐</div>
+                        <div>
+                            <h4 class="font-bold text-orange-800">Read Directly Cross-Region</h4>
+                            <p class="text-xs text-slate-600 mt-1">100–250 ms inter-region latency cripples random-read workloads. GPU utilization collapses waiting on I/O.</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start space-x-4 p-4 bg-green-50 rounded-xl border border-green-100">
+                        <div class="text-2xl">⚡</div>
+                        <div>
+                            <h4 class="font-bold text-green-800">FlexCache (Recommended)</h4>
+                            <p class="text-xs text-slate-600 mt-1">Spin up in minutes. Pay only for blocks read. Single source of truth. No app changes. GPU utilization stays high.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 6: QUICK START -->
+        <section class="card bg-blue-50 border-blue-100">
+            <div class="text-center mb-8">
+                <div class="inline-block bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider mb-3">Quick Start</div>
+                <h2 class="text-3xl font-bold">Get Running in 4 Steps</h2>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div class="flex flex-col items-center text-center space-y-3">
+                    <div class="w-12 h-12 bg-blue-700 text-white rounded-full flex items-center justify-center font-black text-xl">1</div>
+                    <h4 class="font-bold text-blue-900">Peer the SVMs</h4>
+                    <p class="text-xs text-slate-600">Create a cluster and SVM peer relationship between the origin FSx ONTAP file system (us-east-1) and the cache file system (us-west-2).</p>
+                </div>
+                <div class="flex flex-col items-center text-center space-y-3">
+                    <div class="w-12 h-12 bg-blue-700 text-white rounded-full flex items-center justify-center font-black text-xl">2</div>
+                    <h4 class="font-bold text-blue-900">Create FlexCache</h4>
+                    <p class="text-xs text-slate-600">Run <code class="bg-blue-100 px-1 rounded text-blue-800">volume flexcache create</code> on the cache cluster, pointing to the origin volume. Size the cache to cover your hot working set.</p>
+                </div>
+                <div class="flex flex-col items-center text-center space-y-3">
+                    <div class="w-12 h-12 bg-blue-700 text-white rounded-full flex items-center justify-center font-black text-xl">3</div>
+                    <h4 class="font-bold text-blue-900">Mount &amp; Train</h4>
+                    <p class="text-xs text-slate-600">Mount the FlexCache volume on your GPU instances via NFS. Point your training framework at the mount path. No code changes needed.</p>
+                </div>
+                <div class="flex flex-col items-center text-center space-y-3">
+                    <div class="w-12 h-12 bg-blue-700 text-white rounded-full flex items-center justify-center font-black text-xl">4</div>
+                    <h4 class="font-bold text-blue-900">Pre-warm (Optional)</h4>
+                    <p class="text-xs text-slate-600">Use <code class="bg-blue-100 px-1 rounded text-blue-800">volume flexcache prepopulate</code> to pre-stage hot files before training starts — eliminating even first-read latency.</p>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="max-w-4xl mx-auto mt-20 text-center pb-20">
+        <div class="bg-purple-700 text-white p-10 rounded-3xl shadow-2xl">
+            <h3 class="text-3xl font-bold mb-4">Stop Waiting. Start Training.</h3>
+            <p class="mb-8 opacity-90 max-w-xl mx-auto">
+                With FSx for NetApp ONTAP FlexCache, GPU scarcity becomes a routing problem — not a data problem. 
+                Cache intelligently, compute wherever capacity exists, and ship models faster.
+            </p>
+        </div>
+    </footer>
+
+    <script>
+        // --- Helper: Label Wrapping ---
+        function wrapLabels(label) {
+            if (label.length <= 16) return label;
+            const words = label.split(' ');
+            const lines = [];
+            let currentLine = "";
+            words.forEach(w => {
+                if ((currentLine + w).length > 16) {
+                    lines.push(currentLine.trim());
+                    currentLine = w + " ";
+                } else {
+                    currentLine += w + " ";
+                }
+            });
+            lines.push(currentLine.trim());
+            return lines;
+        }
+
+        // --- Common Tooltip Config ---
+        const commonTooltip = {
+            callbacks: {
+                title: function(tooltipItems) {
+                    const item = tooltipItems[0];
+                    let label = item.chart.data.labels[item.dataIndex];
+                    return Array.isArray(label) ? label.join(' ') : label;
+                }
+            }
+        };
+
+        // --- Chart 1: Migration Cost Comparison ---
+        const migCtx = document.getElementById('migrationCostChart').getContext('2d');
+        new Chart(migCtx, {
+            type: 'bar',
+            data: {
+                labels: [
+                    wrapLabels('Full Data Copy'),
+                    wrapLabels('Cross-Region Direct'),
+                    wrapLabels('FlexCache')
+                ],
+                datasets: [
+                    {
+                        label: 'Egress / Transfer Cost',
+                        data: [75, 30, 8],
+                        backgroundColor: '#DC2626',
+                        borderRadius: 6
+                    },
+                    {
+                        label: 'Setup Time (days)',
+                        data: [21, 0, 0.5],
+                        backgroundColor: '#F59E0B',
+                        borderRadius: 6
+                    },
+                    {
+                        label: 'Storage Overhead (relative)',
+                        data: [100, 0, 12],
+                        backgroundColor: '#1E3A8A',
+                        borderRadius: 6
+                    }
+                ]
+            },
+            options: {
+                maintainAspectRatio: false,
+                responsive: true,
+                plugins: {
+                    tooltip: commonTooltip,
+                    legend: { position: 'bottom' }
+                },
+                scales: {
+                    y: { beginAtZero: true, title: { display: true, text: 'Relative Units' } }
+                }
+            }
+        });
+
+        // --- Chart 2: Latency Comparison ---
+        const latCtx = document.getElementById('latencyComparisonChart').getContext('2d');
+        new Chart(latCtx, {
+            type: 'bar',
+            data: {
+                labels: [
+                    wrapLabels('Cross-Region Direct (cold)'),
+                    wrapLabels('FlexCache First Read'),
+                    wrapLabels('FlexCache Warm Hit'),
+                    wrapLabels('Local Volume')
+                ],
+                datasets: [{
+                    label: 'Read Latency (ms)',
+                    data: [180, 20, 0.8, 0.5],
+                    backgroundColor: ['#DC2626', '#F59E0B', '#10B981', '#1E3A8A'],
+                    borderRadius: 8
+                }]
+            },
+            options: {
+                maintainAspectRatio: false,
+                responsive: true,
+                indexAxis: 'y',
+                plugins: {
+                    tooltip: commonTooltip,
+                    legend: { display: false }
+                },
+                scales: {
+                    x: {
+                        beginAtZero: true,
+                        title: { display: true, text: 'Latency (ms) — lower is better' },
+                        type: 'logarithmic'
+                    }
+                }
+            }
+        });
+
+        // --- Chart 3: Approach Radar ---
+        const radarCtx = document.getElementById('approachRadar').getContext('2d');
+        new Chart(radarCtx, {
+            type: 'radar',
+            data: {
+                labels: [
+                    wrapLabels('Speed to Start'),
+                    wrapLabels('Cost Efficiency'),
+                    wrapLabels('Data Consistency'),
+                    wrapLabels('App Simplicity'),
+                    wrapLabels('Read Performance')
+                ],
+                datasets: [
+                    {
+                        label: 'FlexCache',
+                        data: [95, 90, 98, 95, 92],
+                        backgroundColor: 'rgba(126, 34, 206, 0.2)',
+                        borderColor: '#7C3AED',
+                        pointBackgroundColor: '#7C3AED',
+                        borderWidth: 2
+                    },
+                    {
+                        label: 'Full Data Copy',
+                        data: [10, 30, 55, 70, 85],
+                        backgroundColor: 'rgba(220, 38, 38, 0.15)',
+                        borderColor: '#DC2626',
+                        pointBackgroundColor: '#DC2626',
+                        borderWidth: 2
+                    },
+                    {
+                        label: 'Cross-Region Direct',
+                        data: [95, 95, 95, 95, 15],
+                        backgroundColor: 'rgba(245, 158, 11, 0.15)',
+                        borderColor: '#F59E0B',
+                        pointBackgroundColor: '#F59E0B',
+                        borderWidth: 2
+                    }
+                ]
+            },
+            options: {
+                maintainAspectRatio: false,
+                responsive: true,
+                plugins: {
+                    tooltip: commonTooltip,
+                    legend: { position: 'bottom' }
+                },
+                scales: {
+                    r: {
+                        beginAtZero: true,
+                        max: 100,
+                        ticks: { display: false }
+                    }
+                }
+            }
+        });
+    </script>
+
+</div>
+</body>
+</html>
