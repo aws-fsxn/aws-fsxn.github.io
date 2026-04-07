@@ -67,6 +67,12 @@ const navigationConfig = {
             url: "ebs-vs-fsxn-showdown.html",
             icon: "🥊",
             description: "Block Storage Showdown"
+        },
+        {
+            title: "FlexCache",
+            url: "flexcache.html",
+            icon: "⚡",
+            description: "Escape Compute Scarcity"
         }
     ]
 };
