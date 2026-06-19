@@ -19,6 +19,12 @@
             border-radius: 2px;
             opacity: 0;
         }
+        .glow {
+            box-shadow: 0 0 15px rgba(59, 130, 246, 0.5);
+        }
+        .cache-hit-glow {
+            box-shadow: 0 0 15px rgba(16, 185, 129, 0.6);
+        }
         .massive-transfer {
             position: absolute;
             height: 8px;
@@ -31,7 +37,7 @@
 </head>
 <body class="bg-slate-900 text-slate-100 font-sans min-h-screen p-4 md:p-8 flex flex-col items-center justify-start overflow-auto">
 
-    <!-- Header & Controls -->
+    <!-- Header -->
     <div class="max-w-6xl w-full flex flex-col md:flex-row justify-between items-center mt-4 mb-4 gap-4 z-10">
         <div>
             <h1 class="text-2xl md:text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-emerald-400">
@@ -118,7 +124,7 @@
                 <div class="text-[10px] text-slate-400 uppercase tracking-wide">Egress Cost</div>
                 <div class="text-xl font-mono font-bold text-green-400 flex items-center gap-2">
                     $<span id="cost-value">0.00</span>
-                    <span id="cost-strike" class="text-sm text-red-400 line-through hidden">$40.00</span>
+                    <span id="cost-strike" class="text-sm text-red-400 line-through hidden">$10.00</span>
                 </div>
             </div>
         </div>
@@ -250,7 +256,7 @@
                     <p class="text-xs text-slate-400">Idle / Stalled Pipeline</p>
                 </div>
                 <div id="status-inference-trad" class="absolute -right-2 -top-2 bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded shadow opacity-0 flex items-center gap-1 whitespace-nowrap">
-                    <i data-lucide="clock" class="w-3 h-3"></i> 45m Stalled
+                    <i data-lucide="clock" class="w-3 h-3"></i> pipeline stalled
                 </div>
             </div>
 
@@ -372,12 +378,12 @@
           .to('#node-flexcache', { boxShadow: "0 0 15px rgba(59, 130, 246, 0.5)", duration: 0.3 });
 
         // 5. Modern Action & Savings Metric (While Traditional is still copying)
-        setStory("4. Modern Pipeline finishes instantly. Egress cost drops to $1.60.", "+=0.5");
+        setStory("4. Modern Pipeline finishes instantly. Egress cost drops to $0.40.", "+=0.5");
         tl.to('#node-db', { opacity: 1, scale: 1.05, duration: 0.4 })
           .to('#node-db', { scale: 1, duration: 0.2 })
           .to('#status-inference', { opacity: 1, y: -5, duration: 0.5, ease: "back.out" })
-          // Tick the cost up to $1.60 safely
-          .to(costData, { modern: 1.60, duration: 1.5, ease: "power2.out", onUpdate: () => {
+          // Tick the cost up to $0.40 safely
+          .to(costData, { modern: 0.40, duration: 1.5, ease: "power2.out", onUpdate: () => {
               document.getElementById('cost-value').innerText = costData.modern.toFixed(2);
           }})
           .set('#cost-strike', { display: 'inline-block' })
@@ -386,10 +392,10 @@
           .to('#massive-transfer', { scaleX: 0.6, duration: 2, ease: "none" }, "-=1.5");
 
         // 6. Traditional Finishes (Delay & High Cost)
-        setStory("5. 45 mins later, Traditional Pipeline finally completes. Massive Egress Costs incurred.", "+=1");
+        setStory("5. Pipeline stalled. Traditional Pipeline finally completes. Massive Egress Costs incurred.", "+=1");
         tl.to('#massive-transfer', { scaleX: 1, duration: 2, ease: "none" })
           .to('#egress-tracker-trad', { opacity: 1, y: -10, duration: 0.5, ease: "back.out" })
-          .to(costData, { trad: 40.00, duration: 2, ease: "power2.out", onUpdate: () => {
+          .to(costData, { trad: 10.00, duration: 2, ease: "power2.out", onUpdate: () => {
               document.getElementById('cost-value-trad').innerText = costData.trad.toFixed(2);
           }}, "-=2")
           .to('#node-db-trad', { opacity: 1, scale: 1.05, duration: 0.4 })
