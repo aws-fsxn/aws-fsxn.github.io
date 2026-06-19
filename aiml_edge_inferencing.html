@@ -1,0 +1,874 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Airflow Architecture Comparison</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <style>
+        /* Custom Animations */
+        @keyframes progress {
+            from { width: 0%; }
+            to { width: 100%; }
+        }
+        .animate-progress {
+            animation: progress 6s linear forwards;
+        }
+        
+        /* Smooth transitions for all layout changes */
+        .fade-in {
+            animation: fadeIn 0.5s ease-out forwards;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Hide utility for JS toggling */
+        .hidden-el { display: none !important; }
+    </style>
+</head>
+<body class="bg-slate-50 font-sans text-slate-800 antialiased min-h-screen p-4 lg:p-8">
+
+    <div id="app-root" class="max-w-7xl mx-auto space-y-6">
+        
+        <!-- Navigation Tabs -->
+        <div class="bg-white p-2 rounded-xl shadow-sm border border-slate-200 flex flex-col sm:flex-row justify-center gap-2 items-center relative z-50">
+            <div class="px-4 py-2 font-bold text-slate-600 flex items-center gap-2 mr-auto border-r border-slate-200">
+                <i data-lucide="layout-template" class="w-5 h-5 text-indigo-500"></i> Architecture Comparison
+            </div>
+            
+            <button id="tab-modern" onclick="app.setTab('modern')" class="flex-1 sm:flex-none flex items-center justify-center gap-2 px-6 py-3 rounded-lg font-semibold transition-all duration-300 bg-blue-600 text-white shadow-md">
+                <i data-lucide="network" class="w-[18px] h-[18px]"></i> Modern Edge (FlexCache)
+            </button>
+            
+            <button id="tab-traditional" onclick="app.setTab('traditional')" class="flex-1 sm:flex-none flex items-center justify-center gap-2 px-6 py-3 rounded-lg font-semibold transition-all duration-300 bg-transparent text-slate-600 hover:bg-slate-100">
+                <i data-lucide="alert-triangle" class="w-[18px] h-[18px]"></i> Traditional (Full Copy)
+            </button>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- MODERN EDGE VIEW -->
+        <!-- ========================================== -->
+        <div id="view-modern" class="space-y-6 fade-in">
+            <!-- Header Context -->
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+                <div class="flex flex-col md:flex-row justify-between md:items-center gap-4 border-b border-slate-100 pb-4 mb-4">
+                    <div>
+                        <h2 class="text-2xl font-bold text-slate-900 flex items-center gap-2">
+                            <i data-lucide="network" class="w-6 h-6 text-blue-600"></i>
+                            Modern Architecture: Global Airflow Edge + FlexCache
+                        </h2>
+                        <p class="text-slate-600 mt-1">End-to-End decoupled execution using 4KB block-level data hydration.</p>
+                    </div>
+                    <div class="flex items-center gap-2 bg-blue-50 text-blue-800 px-4 py-2 rounded-full text-sm font-semibold border border-blue-100">
+                        <i data-lucide="building" class="w-4 h-4"></i> Atlas Global Bank
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4 text-sm">
+                    <div class="bg-slate-50 p-4 rounded-lg border border-slate-200">
+                        <div class="font-bold text-slate-800 flex items-center gap-2 mb-2"><i data-lucide="globe" class="w-4 h-4 text-indigo-500"></i> The Scenario</div>
+                        <p class="text-slate-600">The US Data Science team updates 20GB of weights inside the 500GB Fraud ML Model. A Kafka stream triggers the APAC pipeline.</p>
+                    </div>
+                    <div class="bg-emerald-50 p-4 rounded-lg border border-emerald-200 col-span-1 md:col-span-3 relative overflow-hidden">
+                        <div class="absolute top-0 right-0 bg-emerald-500 text-white text-[10px] font-bold px-2 py-1 rounded-bl-lg z-10">THE FLEXCACHE ADVANTAGE</div>
+                        <div class="font-bold text-emerald-800 flex items-center gap-2 mb-2 relative z-20"><i data-lucide="layers" class="w-4 h-4"></i> Block-Level Granularity vs File Syncs</div>
+                        <p class="text-emerald-700 relative z-20">Instead of using Airflow to script file-level syncs, FlexCache operates invisibly at the 4KB block level. When the script runs, <b>480GB of unchanged blocks are served instantly from the local SSD</b>. The system dynamically streams only the 20GB of changed blocks across the WAN in real-time, eliminating pipeline stalls.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                <!-- Controls Column -->
+                <div class="lg:col-span-4 space-y-6">
+                    <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+                        <div class="bg-slate-100 px-4 py-3 border-b border-slate-200 font-semibold text-slate-700 flex justify-between items-center">
+                            <span>Data Pipeline Life Cycle</span>
+                            <button onclick="app.togglePlay()" class="flex items-center gap-1 text-xs font-bold px-2 py-1 bg-white border border-slate-300 rounded shadow-sm text-slate-600 hover:bg-slate-50 transition-colors">
+                                <span id="modern-play-icon"></span> <span id="modern-play-text">Pause</span>
+                            </button>
+                        </div>
+                        <div id="modern-steps-container" class="p-2">
+                            <!-- Steps generated by JS -->
+                        </div>
+                    </div>
+
+                    <!-- Details Box -->
+                    <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+                        <div class="bg-slate-100 px-4 py-3 border-b border-slate-200 font-semibold text-slate-700 flex items-center gap-2">
+                            <i data-lucide="activity" class="w-[18px] h-[18px]"></i> Execution Details
+                        </div>
+                        <div class="p-5 space-y-4">
+                            <p id="modern-desc" class="text-sm text-slate-700 leading-relaxed font-medium"></p>
+                            <div class="pt-4 border-t border-slate-100 space-y-4">
+                                <div>
+                                    <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Network Protocol</span>
+                                    <div class="flex items-center gap-2 mt-1 text-sm font-semibold text-slate-700 bg-slate-50 p-2 rounded border border-slate-100">
+                                        <i data-lucide="zap" class="w-4 h-4 text-amber-500"></i> <span id="modern-protocol"></span>
+                                    </div>
+                                </div>
+                                <div>
+                                    <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Security Posture</span>
+                                    <div class="flex items-center gap-2 mt-1 text-sm font-semibold text-slate-700 bg-slate-50 p-2 rounded border border-slate-100">
+                                        <i data-lucide="shield-check" class="w-4 h-4 text-green-600"></i> <span id="modern-posture"></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Canvas Column -->
+                <div class="lg:col-span-8 bg-white rounded-xl shadow-sm border border-slate-200 p-6 xl:p-8 relative overflow-hidden flex flex-col justify-between min-h-[700px]">
+                    
+                    <!-- Primary Region -->
+                    <div class="relative border-2 border-dashed border-slate-300 rounded-xl p-6 bg-slate-50 pt-10">
+                        <div class="absolute top-0 left-0 w-full bg-slate-200/50 px-4 py-2 border-b border-slate-300 rounded-t-xl text-xs font-bold text-slate-600 uppercase flex items-center justify-between">
+                            <span class="flex items-center gap-2"><i data-lucide="cloud" class="w-3.5 h-3.5"></i> Data Science Hub (AWS us-east-1)</span>
+                        </div>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 md:gap-6 mt-4">
+                            
+                            <div class="flex flex-col justify-center relative">
+                                <div data-node="pos" data-active-class="border-amber-500 bg-amber-50 shadow-md" data-inactive-class="border-slate-200 bg-white" class="p-3 rounded-lg border-2 transition-all duration-300 flex items-center gap-2 relative z-10 border-slate-200 bg-white">
+                                    <span data-icon-wrap="pos" data-active-class="text-amber-600" data-inactive-class="text-slate-400" class="text-slate-400"><i data-lucide="terminal" class="w-6 h-6"></i></span>
+                                    <div>
+                                        <div class="font-bold text-xs text-slate-800">POS Gateways</div>
+                                    </div>
+                                </div>
+                                <div data-path="pos-kafka" data-active-class="border-amber-500 animate-pulse" data-inactive-class="border-transparent" class="hidden md:block absolute top-1/2 right-0 translate-x-[90%] w-6 border-t-4 border-dashed transition-colors duration-300 z-0 border-transparent">
+                                    <span data-path-icon="pos-kafka" class="hidden-el absolute -top-3 -right-2 text-amber-500 bg-slate-50"><i data-lucide="arrow-right" class="w-5 h-5"></i></span>
+                                </div>
+                            </div>
+
+                            <div class="flex flex-col justify-center relative">
+                                <div data-node="kafka" data-active-class="border-amber-500 bg-amber-50 shadow-md scale-105" data-inactive-class="border-slate-200 bg-white" class="p-4 rounded-lg border-2 transition-all duration-300 flex items-center gap-3 relative z-10 border-slate-200 bg-white">
+                                    <span data-icon-wrap="kafka" data-active-class="text-amber-600" data-inactive-class="text-slate-400" class="text-slate-400"><i data-lucide="radio" class="w-7 h-7"></i></span>
+                                    <div>
+                                        <div class="font-bold text-sm text-slate-800">Kafka Stream</div>
+                                    </div>
+                                </div>
+                                <div data-path="kafka-api" data-active-class="border-amber-500 animate-pulse" data-inactive-class="border-transparent" class="hidden md:block absolute top-1/2 right-0 translate-x-[90%] w-6 border-t-4 border-dashed transition-colors duration-300 z-0 border-transparent">
+                                    <span data-path-icon="kafka-api" class="hidden-el absolute -top-3 -right-2 text-amber-500 bg-slate-50"><i data-lucide="arrow-right" class="w-5 h-5"></i></span>
+                                </div>
+                            </div>
+
+                            <div class="space-y-4 relative z-10">
+                                <div data-node="api" data-active-class="border-blue-500 bg-blue-50 shadow-md scale-105" data-inactive-class="border-slate-200 bg-white" class="p-4 rounded-lg border-2 transition-all duration-300 flex items-center gap-3 border-slate-200 bg-white">
+                                    <span data-icon-wrap="api" data-active-class="text-blue-600" data-inactive-class="text-slate-400" class="text-slate-400"><i data-lucide="server" class="w-7 h-7"></i></span>
+                                    <div>
+                                        <div class="font-bold text-sm text-slate-800">Airflow API</div>
+                                    </div>
+                                </div>
+                                <div class="flex gap-2">
+                                    <div data-node="scheduler" data-active-class="border-indigo-500 bg-indigo-50 shadow-inner" data-inactive-class="border-slate-200 bg-white" class="flex-1 p-2 rounded-lg border-2 transition-all duration-300 flex items-center justify-center gap-2 border-slate-200 bg-white">
+                                        <span data-icon-wrap="scheduler" data-active-class="text-indigo-600" data-inactive-class="text-slate-400" class="text-slate-400"><i data-lucide="cpu" class="w-4 h-4"></i></span>
+                                        <div class="font-bold text-[10px] uppercase text-slate-800">Sched.</div>
+                                    </div>
+                                    <div data-node="db" data-active-class="border-indigo-500 bg-indigo-50 shadow-inner" data-inactive-class="border-slate-200 bg-white" class="flex-1 p-2 rounded-lg border-2 transition-all duration-300 flex items-center justify-center gap-2 border-slate-200 bg-white">
+                                        <span data-icon-wrap="db" data-active-class="text-indigo-600" data-inactive-class="text-slate-400" class="text-slate-400"><i data-lucide="database" class="w-4 h-4"></i></span>
+                                        <div class="font-bold text-[10px] uppercase text-slate-800">Meta</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="flex flex-col justify-center relative z-10">
+                                <div data-node="origin" data-active-class="border-emerald-500 bg-emerald-50 shadow-md scale-105" data-inactive-class="border-slate-200 bg-white" class="p-5 rounded-lg border-2 transition-all duration-300 flex items-center gap-4 border-slate-200 bg-white">
+                                    <span data-icon-wrap="origin" data-active-class="text-emerald-600" data-inactive-class="text-slate-400" class="text-slate-400"><i data-lucide="hard-drive" class="w-8 h-8"></i></span>
+                                    <div>
+                                        <div class="font-bold text-sm text-slate-800">FSxN Origin</div>
+                                        <div class="text-[10px] uppercase text-slate-500 mt-1">500GB Master Model</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Network Bridge Area -->
+                    <div class="h-32 flex items-center justify-between px-8 md:px-24 relative">
+                        <div data-path="bridge-api" data-active-class="border-blue-500 animate-pulse" data-inactive-class="border-slate-200" class="absolute left-[50%] md:left-[60%] h-full w-1 border-l-4 border-dashed transition-colors duration-300 border-slate-200">
+                            <span data-path-icon="api-worker" class="hidden-el absolute top-1/2 -translate-y-1/2 -left-3 bg-white px-1 rounded-full shadow-sm text-blue-500"><i data-lucide="arrow-down" class="w-5 h-5"></i></span>
+                            <span data-path-icon="worker-api" class="hidden-el absolute top-1/2 -translate-y-1/2 -left-3 bg-white px-1 rounded-full shadow-sm text-blue-500"><i data-lucide="arrow-up" class="w-5 h-5"></i></span>
+                        </div>
+                        
+                        <div class="text-xs font-bold text-slate-400 tracking-widest text-center w-full uppercase flex flex-col items-center relative z-20">
+                            <span>Global WAN</span>
+                            
+                            <!-- Egress Cost Badge -->
+                            <div data-show-on-step="2" class="hidden-el absolute top-8 bg-green-100 border border-green-300 text-green-800 px-3 py-1.5 rounded-full shadow-sm flex flex-col items-center gap-1 animate-bounce z-30">
+                                <div class="flex items-center gap-2">
+                                    <i data-lucide="trending-down" class="w-3.5 h-3.5 text-green-600"></i>
+                                    <span class="font-bold">Egress Cost: $1.60</span>
+                                </div>
+                                <span class="text-[10px] opacity-90 px-2 rounded font-semibold bg-green-200">(ONLY 20GB of 4KB Blocks Pulled)</span>
+                            </div>
+                        </div>
+
+                        <div data-path="cache-origin" data-active-class="border-emerald-500 animate-pulse" data-inactive-class="border-slate-200" class="absolute right-12 md:right-[15%] h-full w-1 border-l-4 border-dashed transition-colors duration-300 border-slate-200">
+                            <span data-path-icon="cache-origin" class="hidden-el absolute top-1/2 -translate-y-1/2 -left-3 bg-white px-1 rounded-full shadow-sm text-emerald-500"><i data-lucide="arrow-up" class="w-5 h-5"></i></span>
+                        </div>
+                    </div>
+
+                    <!-- Edge Region -->
+                    <div class="relative border-2 border-dashed border-slate-300 rounded-xl p-6 bg-slate-50 pt-10">
+                        <div class="absolute top-0 left-0 w-full bg-slate-200/50 px-4 py-2 border-b border-slate-300 rounded-t-xl text-xs font-bold text-slate-600 uppercase flex items-center justify-between">
+                            <span class="flex items-center gap-2"><i data-lucide="cloud" class="w-3.5 h-3.5"></i> APAC Processing Hub (Singapore)</span>
+                        </div>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8 mt-4 relative">
+                            
+                            <div class="space-y-4 order-last md:order-first relative z-10">
+                                <div data-node="dashboard" data-active-class="border-rose-500 bg-rose-50 shadow-md" data-inactive-class="border-slate-200 bg-white" class="p-3 rounded-lg border-2 transition-all duration-300 flex items-center gap-3 border-slate-200 bg-white">
+                                    <span data-icon-wrap="dashboard" data-active-class="text-rose-600" data-inactive-class="text-slate-400" class="text-slate-400"><i data-lucide="alert-octagon" class="w-5 h-5"></i></span>
+                                    <div>
+                                        <div class="font-bold text-xs text-slate-800">Fraud Alerts</div>
+                                    </div>
+                                </div>
+                                <div data-node="amldb" data-active-class="border-indigo-500 bg-indigo-50 shadow-md" data-inactive-class="border-slate-200 bg-white" class="p-3 rounded-lg border-2 transition-all duration-300 flex items-center gap-3 border-slate-200 bg-white">
+                                    <span data-icon-wrap="amldb" data-active-class="text-indigo-600" data-inactive-class="text-slate-400" class="text-slate-400"><i data-lucide="database-backup" class="w-5 h-5"></i></span>
+                                    <div>
+                                        <div class="font-bold text-xs text-slate-800">Local AML DB</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="flex flex-col justify-center relative z-10 md:col-span-2">
+                                <div data-node="worker" data-active-class="border-blue-500 bg-blue-50 shadow-md" data-inactive-class="border-slate-200 bg-white" class="p-5 rounded-lg border-2 transition-all duration-300 flex items-center justify-between gap-3 relative border-slate-200 bg-white">
+                                    
+                                    <div class="flex flex-col items-center gap-2 z-20">
+                                        <span data-icon-wrap="worker" data-active-class="text-blue-600" data-inactive-class="text-slate-400" class="text-slate-400"><i data-lucide="activity" class="w-9 h-9"></i></span>
+                                        <div class="text-center">
+                                            <div class="font-bold text-sm text-slate-800">Edge Worker</div>
+                                        </div>
+                                    </div>
+
+                                    <div data-path="worker-cache" data-active-class="opacity-100" data-inactive-class="opacity-30" class="flex flex-col items-center w-24 relative opacity-30 transition-opacity duration-300">
+                                        <span data-path-icon="worker-cache" class="hidden-el text-emerald-500 absolute -top-4 -left-4 animate-pulse"><i data-lucide="arrow-left" class="w-6 h-6"></i></span>
+                                        <div class="h-1 w-full border-t-4 border-dashed border-emerald-500 my-2"></div>
+                                        <span class="text-[10px] font-bold text-emerald-700 whitespace-nowrap">Local NFS Mount</span>
+                                    </div>
+
+                                    <div class="flex flex-col items-center gap-2 z-20">
+                                        <span data-icon-wrap="flexcache" data-active-class="text-emerald-600" data-inactive-class="text-slate-400" class="text-slate-400"><i data-lucide="hard-drive" class="w-9 h-9"></i></span>
+                                        <div class="text-center">
+                                            <div class="font-bold text-sm text-slate-800">FlexCache Local Volume</div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Dynamic Badges -->
+                                    <div data-show-from-step="2" class="hidden-el absolute -top-12 left-1/2 -translate-x-1/2 flex gap-4 w-full justify-center">
+                                        <div class="bg-emerald-100 text-emerald-800 text-[10px] font-bold px-3 py-1.5 rounded shadow-sm border border-emerald-200 z-20 flex items-center gap-1 fade-in">
+                                            <i data-lucide="hard-drive" class="w-3.5 h-3.5"></i> 480GB Served Locally (Hit)
+                                        </div>
+                                        <div class="bg-blue-100 text-blue-800 text-[10px] font-bold px-3 py-1.5 rounded shadow-sm border border-blue-200 z-20 flex items-center gap-1 fade-in">
+                                            <i data-lucide="layers" class="w-3.5 h-3.5"></i> 20GB Streamed (Miss)
+                                        </div>
+                                    </div>
+
+                                </div>
+                                
+                                <!-- Downstream arrows -->
+                                <div data-path="worker-amldb" data-active-class="border-indigo-500 animate-pulse" data-inactive-class="border-transparent" class="hidden md:block absolute top-[50%] right-0 translate-x-[90%] translate-y-[-50%] w-8 border-t-4 border-dashed transition-colors duration-300 z-0 border-transparent">
+                                    <span data-path-icon="worker-amldb" class="hidden-el absolute -top-3 -left-2 text-indigo-500 bg-slate-50"><i data-lucide="arrow-left" class="w-5 h-5"></i></span>
+                                </div>
+                                <div data-path="worker-dashboard" data-active-class="border-rose-500 animate-pulse" data-inactive-class="border-transparent" class="hidden md:block absolute top-[15%] right-0 translate-x-[90%] translate-y-[-50%] w-8 border-t-4 border-dashed transition-colors duration-300 z-0 border-transparent">
+                                    <span data-path-icon="worker-dashboard" class="hidden-el absolute -top-3 -left-2 text-rose-500 bg-slate-50"><i data-lucide="arrow-left" class="w-5 h-5"></i></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- TRADITIONAL VIEW -->
+        <!-- ========================================== -->
+        <div id="view-traditional" class="space-y-6 fade-in hidden-el">
+            <!-- Header Context -->
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-red-200">
+                <div class="flex flex-col md:flex-row justify-between md:items-center gap-4 border-b border-slate-100 pb-4 mb-4">
+                    <div>
+                        <h2 class="text-2xl font-bold text-slate-900 flex items-center gap-2">
+                            <i data-lucide="alert-triangle" class="w-6 h-6 text-red-500"></i>
+                            Anti-Pattern: Traditional Full-Copy Architecture
+                        </h2>
+                        <p class="text-slate-600 mt-1">The consequences of Object Immutability without an Edge Data Fabric.</p>
+                    </div>
+                    <div class="flex items-center gap-2 bg-red-50 text-red-800 px-4 py-2 rounded-full text-sm font-semibold border border-red-100">
+                        <i data-lucide="ban" class="w-4 h-4"></i> SLA Risk Detected
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4 text-sm">
+                    <div class="bg-slate-50 p-4 rounded-lg border border-slate-200">
+                        <div class="font-bold text-slate-800 flex items-center gap-2 mb-2"><i data-lucide="globe" class="w-4 h-4 text-indigo-500"></i> The Scenario</div>
+                        <p class="text-slate-600">The US Data Science team updates 20GB of weights inside the 500GB Fraud ML Model. A Kafka stream triggers the APAC pipeline.</p>
+                    </div>
+                    <div class="bg-red-50 p-4 rounded-lg border border-red-200 col-span-1 md:col-span-3 relative overflow-hidden">
+                        <div class="absolute top-0 right-0 bg-red-500 text-white text-[10px] font-bold px-2 py-1 rounded-bl-lg z-10">THE IMMUTABILITY BOTTLENECK</div>
+                        <div class="font-bold text-red-800 flex items-center gap-2 mb-2 relative z-20"><i data-lucide="package-x" class="w-4 h-4"></i> The Traditional Flaw (Cost & Latency)</div>
+                        <p class="text-red-700 relative z-20">Because object storage (like S3) treats files as immutable blobs, updating 20GB of weights replaces the entire 500GB file. Without a block-level caching layer, the Airflow pipeline is forced to execute a full `aws s3 cp` to pull the <b>entire 500GB object</b> across the WAN, incurring massive fees and stalling the pipeline for 45 minutes.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                <!-- Controls Column -->
+                <div class="lg:col-span-4 space-y-6">
+                    <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+                        <div class="bg-slate-100 px-4 py-3 border-b border-slate-200 font-semibold text-slate-700 flex justify-between items-center">
+                            <span>Data Pipeline Life Cycle</span>
+                            <button onclick="app.togglePlay()" class="flex items-center gap-1 text-xs font-bold px-2 py-1 bg-white border border-slate-300 rounded shadow-sm text-slate-600 hover:bg-slate-50 transition-colors">
+                                <span id="trad-play-icon"></span> <span id="trad-play-text">Pause</span>
+                            </button>
+                        </div>
+                        <div id="traditional-steps-container" class="p-2">
+                            <!-- Steps generated by JS -->
+                        </div>
+                    </div>
+
+                    <!-- Details Box -->
+                    <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+                        <div class="bg-slate-100 px-4 py-3 border-b border-slate-200 font-semibold text-slate-700 flex items-center gap-2">
+                            <i data-lucide="activity" class="w-[18px] h-[18px]"></i> Execution Details
+                        </div>
+                        <div class="p-5 space-y-4">
+                            <p id="trad-desc" class="text-sm text-slate-700 leading-relaxed font-medium"></p>
+                            <div class="pt-4 border-t border-slate-100 space-y-4">
+                                <div>
+                                    <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Network Protocol</span>
+                                    <div class="flex items-center gap-2 mt-1 text-sm font-semibold text-slate-700 bg-slate-50 p-2 rounded border border-slate-100">
+                                        <i data-lucide="zap-off" class="w-4 h-4 text-red-500"></i> <span id="trad-protocol"></span>
+                                    </div>
+                                </div>
+                                <div>
+                                    <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Operational Posture</span>
+                                    <div class="flex items-center gap-2 mt-1 text-sm font-semibold text-slate-700 bg-slate-50 p-2 rounded border border-slate-100">
+                                        <i data-lucide="alert-triangle" class="w-4 h-4 text-orange-500"></i> <span id="trad-posture"></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Canvas Column -->
+                <div class="lg:col-span-8 bg-white rounded-xl shadow-sm border border-slate-200 p-6 xl:p-8 relative overflow-hidden flex flex-col justify-between min-h-[700px]">
+                    
+                    <div class="relative border-2 border-dashed border-slate-300 rounded-xl p-6 bg-slate-50 pt-10 opacity-90">
+                        <div class="absolute top-0 left-0 w-full bg-slate-200/50 px-4 py-2 border-b border-slate-300 rounded-t-xl text-xs font-bold text-slate-600 uppercase flex items-center justify-between">
+                            <span class="flex items-center gap-2"><i data-lucide="cloud" class="w-3.5 h-3.5"></i> Data Science Hub (AWS us-east-1)</span>
+                        </div>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 md:gap-6 mt-4">
+                            
+                            <div class="flex flex-col justify-center relative">
+                                <div data-node="pos-t" data-active-class="border-amber-500 bg-amber-50 shadow-md" data-inactive-class="border-slate-200 bg-white" class="p-3 rounded-lg border-2 transition-all duration-300 flex items-center gap-2 relative z-10 border-slate-200 bg-white">
+                                    <span data-icon-wrap="pos-t" data-active-class="text-amber-600" data-inactive-class="text-slate-400" class="text-slate-400"><i data-lucide="terminal" class="w-6 h-6"></i></span>
+                                    <div>
+                                        <div class="font-bold text-xs text-slate-800">POS Gateways</div>
+                                    </div>
+                                </div>
+                                <div data-path="pos-kafka-t" data-active-class="border-amber-500 animate-pulse" data-inactive-class="border-transparent" class="hidden md:block absolute top-1/2 right-0 translate-x-[90%] w-6 border-t-4 border-dashed transition-colors duration-300 z-0 border-transparent">
+                                    <span data-path-icon="pos-kafka-t" class="hidden-el absolute -top-3 -right-2 text-amber-500 bg-slate-50"><i data-lucide="arrow-right" class="w-5 h-5"></i></span>
+                                </div>
+                            </div>
+
+                            <div class="flex flex-col justify-center relative">
+                                <div data-node="kafka-t" data-active-class="border-amber-500 bg-amber-50 shadow-md scale-105" data-inactive-class="border-slate-200 bg-white" class="p-4 rounded-lg border-2 transition-all duration-300 flex items-center gap-3 relative z-10 border-slate-200 bg-white">
+                                    <span data-icon-wrap="kafka-t" data-active-class="text-amber-600" data-inactive-class="text-slate-400" class="text-slate-400"><i data-lucide="radio" class="w-7 h-7"></i></span>
+                                    <div>
+                                        <div class="font-bold text-sm text-slate-800">Kafka</div>
+                                    </div>
+                                </div>
+                                <div data-path="kafka-api-t" data-active-class="border-amber-500 animate-pulse" data-inactive-class="border-transparent" class="hidden md:block absolute top-1/2 right-0 translate-x-[90%] w-6 border-t-4 border-dashed transition-colors duration-300 z-0 border-transparent">
+                                    <span data-path-icon="kafka-api-t" class="hidden-el absolute -top-3 -right-2 text-amber-500 bg-slate-50"><i data-lucide="arrow-right" class="w-5 h-5"></i></span>
+                                </div>
+                            </div>
+
+                            <div class="space-y-4 relative z-10">
+                                <div data-node="api-t" data-active-class="border-blue-500 bg-blue-50 shadow-md scale-105" data-inactive-class="border-slate-200 bg-white" class="p-4 rounded-lg border-2 transition-all duration-300 flex items-center gap-3 border-slate-200 bg-white">
+                                    <span data-icon-wrap="api-t" data-active-class="text-blue-600" data-inactive-class="text-slate-400" class="text-slate-400"><i data-lucide="server" class="w-7 h-7"></i></span>
+                                    <div>
+                                        <div class="font-bold text-sm text-slate-800">Airflow API</div>
+                                    </div>
+                                </div>
+                                <div class="flex gap-2">
+                                    <div data-node="scheduler-t" data-active-class="border-indigo-500 bg-indigo-50" data-inactive-class="border-slate-200 bg-white" class="flex-1 p-2 rounded-lg border-2 transition-all duration-300 flex items-center justify-center gap-2 border-slate-200 bg-white">
+                                        <span data-icon-wrap="scheduler-t" data-active-class="text-indigo-600" data-inactive-class="text-slate-400" class="text-slate-400"><i data-lucide="cpu" class="w-4 h-4"></i></span>
+                                        <div class="font-bold text-[10px] uppercase text-slate-800">Sched.</div>
+                                    </div>
+                                    <div data-node="db-t" data-active-class="border-indigo-500 bg-indigo-50" data-inactive-class="border-slate-200 bg-white" class="flex-1 p-2 rounded-lg border-2 transition-all duration-300 flex items-center justify-center gap-2 border-slate-200 bg-white">
+                                        <span data-icon-wrap="db-t" data-active-class="text-indigo-600" data-inactive-class="text-slate-400" class="text-slate-400"><i data-lucide="database" class="w-4 h-4"></i></span>
+                                        <div class="font-bold text-[10px] uppercase text-slate-800">Meta</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="flex flex-col justify-center relative z-10">
+                                <!-- Origin node styling overridden dynamically in JS for this specific view -->
+                                <div id="trad-origin-node" class="p-5 rounded-lg border-2 transition-all duration-300 flex items-center justify-center flex-col gap-2 border-slate-200 bg-white">
+                                    <div data-show-on-step="0" class="hidden-el absolute -top-4 bg-purple-600 text-white text-[10px] font-bold px-3 py-1.5 rounded-full shadow-lg flex items-center gap-1 z-20 animate-bounce">
+                                        <i data-lucide="package-x" class="w-3.5 h-3.5"></i> IMMUTABLE: Entire 500GB Replaced
+                                    </div>
+                                    <span id="trad-origin-icon" class="text-slate-400"><i data-lucide="hard-drive" class="w-8 h-8"></i></span>
+                                    <div class="text-center">
+                                        <div class="font-bold text-sm text-slate-800">Standard S3/EBS</div>
+                                        <div class="text-[10px] uppercase text-slate-500 mt-1">Master Model</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="h-32 flex items-center justify-between px-8 md:px-24 relative">
+                        <div data-path="bridge-api-t" data-active-class="border-blue-500 animate-pulse" data-inactive-class="border-slate-200" class="absolute left-[50%] md:left-[60%] h-full w-1 border-l-4 border-dashed transition-colors duration-300 border-slate-200">
+                            <span data-path-icon="api-worker-t" class="hidden-el absolute top-1/2 -translate-y-1/2 -left-3 bg-white px-1 rounded-full shadow-sm text-blue-500"><i data-lucide="arrow-down" class="w-5 h-5"></i></span>
+                            <span data-path-icon="worker-api-t" class="hidden-el absolute top-1/2 -translate-y-1/2 -left-3 bg-white px-1 rounded-full shadow-sm text-blue-500"><i data-lucide="arrow-up" class="w-5 h-5"></i></span>
+                        </div>
+                        
+                        <div class="text-xs font-bold text-slate-400 tracking-widest text-center w-full uppercase flex flex-col items-center relative z-20">
+                            <span>Global WAN</span>
+                            <div data-show-on-step="1" class="hidden-el absolute top-6 bg-red-100 border border-red-400 text-red-900 px-4 py-2 rounded-lg shadow-md flex flex-col items-center animate-pulse z-30">
+                                <div class="flex items-center gap-2 mb-1">
+                                    <i data-lucide="trending-up" class="w-4 h-4 text-red-600"></i>
+                                    <span class="font-bold text-sm">Massive Egress Cost: $40.00</span>
+                                </div>
+                                <span class="text-[11px] font-semibold text-red-700 bg-red-200 px-2 py-0.5 rounded">ENTIRE 500GB TRANSFERRED</span>
+                                <span class="text-[9px] font-medium text-red-500 mt-1">(Despite only 20GB changing)</span>
+                            </div>
+                        </div>
+
+                        <!-- Thick red animated line -->
+                        <div id="trad-download-path" class="absolute right-12 md:right-[15%] h-full transition-all duration-500 w-1 border-l-4 border-dashed border-slate-200">
+                            <span data-path-icon="origin-worker-copy-t" class="hidden-el absolute top-1/2 -translate-y-1/2 -left-2 bg-white px-1 rounded-full shadow-sm text-red-600"><i data-lucide="arrow-down" class="w-6 h-6"></i></span>
+                        </div>
+                    </div>
+
+                    <div class="relative border-2 border-dashed border-red-300 rounded-xl p-6 bg-red-50/30 pt-10">
+                        <div class="absolute top-0 left-0 w-full bg-red-100/50 px-4 py-2 border-b border-red-200 rounded-t-xl text-xs font-bold text-red-800 uppercase flex items-center justify-between">
+                            <span class="flex items-center gap-2"><i data-lucide="cloud" class="w-3.5 h-3.5"></i> APAC Processing Hub (Singapore)</span>
+                        </div>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8 mt-4 relative">
+                            <div class="space-y-4 order-last md:order-first relative z-10">
+                                <div data-node="dashboard-t" data-active-class="border-orange-500 bg-orange-50 shadow-md" data-inactive-class="border-slate-200 bg-white" class="p-3 rounded-lg border-2 transition-all duration-300 flex items-center gap-3 border-slate-200 bg-white">
+                                    <span data-icon-wrap="dashboard-t" data-active-class="text-orange-600" data-inactive-class="text-slate-400" class="text-slate-400"><i data-lucide="alert-octagon" class="w-5 h-5"></i></span>
+                                    <div>
+                                        <div class="font-bold text-xs text-slate-800">Fraud Alerts</div>
+                                        <div class="text-[9px] uppercase text-red-500 mt-1 font-bold">45 MINUTE DELAY</div>
+                                    </div>
+                                </div>
+                                <div data-node="amldb-t" data-active-class="border-slate-400 bg-slate-50" data-inactive-class="border-slate-200 bg-white" class="p-3 rounded-lg border-2 transition-all duration-300 flex items-center gap-3 border-slate-200 bg-white">
+                                    <span data-icon-wrap="amldb-t" data-active-class="text-slate-600" data-inactive-class="text-slate-400" class="text-slate-400"><i data-lucide="database-backup" class="w-5 h-5"></i></span>
+                                    <div>
+                                        <div class="font-bold text-xs text-slate-800">Local AML DB</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="flex flex-col justify-center relative z-10 md:col-span-2">
+                                <!-- Worker styling overridden dynamically -->
+                                <div id="trad-worker-node" class="p-5 rounded-lg border-2 transition-all duration-300 flex items-center justify-center flex-col gap-3 text-center relative border-slate-200 bg-white">
+                                    <div data-show-on-step="2" class="hidden-el absolute -top-4 bg-red-600 text-white text-[11px] font-bold px-3 py-1.5 rounded-full shadow-lg flex items-center gap-1 z-20 animate-bounce">
+                                        <i data-lucide="clock" class="w-3.5 h-3.5"></i> STALLED: Waiting for 500GB Download
+                                    </div>
+                                    <span id="trad-worker-icon" class="text-slate-400"><i data-lucide="activity" class="w-9 h-9"></i></span>
+                                    <div>
+                                        <div class="font-bold text-sm text-slate-800">Edge Worker (Idle/Stalled)</div>
+                                        <div class="text-[10px] uppercase text-slate-500 mt-1">Downloading to local temp storage...</div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="hidden md:flex absolute top-1/2 right-4 -translate-y-1/2 flex-col items-center justify-center border-2 border-dashed border-red-200 bg-red-50/50 p-4 rounded-lg opacity-50">
+                                <i data-lucide="hard-drive" class="w-6 h-6 text-red-300 mb-2"></i>
+                                <span class="text-[9px] font-bold text-red-400 uppercase text-center">No Edge Fabric<br/>(Cache Missing)</span>
+                            </div>
+
+                            <!-- Downstream arrows -->
+                            <div data-path="worker-amldb-t" data-active-class="border-slate-400 animate-pulse" data-inactive-class="border-transparent" class="hidden md:block absolute top-[50%] right-0 translate-x-[90%] translate-y-[-50%] w-8 border-t-4 border-dashed transition-colors duration-300 z-0 border-transparent">
+                                <span data-path-icon="worker-amldb-t" class="hidden-el absolute -top-3 -left-2 text-slate-500 bg-slate-50"><i data-lucide="arrow-left" class="w-5 h-5"></i></span>
+                            </div>
+                            <div data-path="worker-dashboard-t" data-active-class="border-orange-500 animate-pulse" data-inactive-class="border-transparent" class="hidden md:block absolute top-[15%] right-0 translate-x-[90%] translate-y-[-50%] w-8 border-t-4 border-dashed transition-colors duration-300 z-0 border-transparent">
+                                <span data-path-icon="worker-dashboard-t" class="hidden-el absolute -top-3 -left-2 text-orange-500 bg-slate-50"><i data-lucide="arrow-left" class="w-5 h-5"></i></span>
+                            </div>
+
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Application Logic -->
+    <script>
+        const app = {
+            state: {
+                tab: 'modern',
+                modernStep: 0,
+                traditionalStep: 0,
+                isPlaying: true
+            },
+            timer: null,
+            data: {
+                modern: [
+                    {
+                        title: "Step 1: Event-Driven Trigger",
+                        description: "Global POS Terminals emit a continuous stream of 10M APAC transactions to a Kafka stream. Airflow 3.0's native EventTrigger detects this message and instantly fires the 'APAC_Fraud_Scoring' DAG.",
+                        protocol: "Event Stream / HTTP Webhook",
+                        posture: "Inbound to Primary VPC",
+                        activeNodes: ['pos', 'kafka', 'api', 'scheduler', 'db'],
+                        activePaths: ['pos-kafka', 'kafka-api']
+                    },
+                    {
+                        title: "Step 2: Edge Task Polling",
+                        description: "The Airflow Edge Worker in Singapore securely polls the central API Server over the WAN. It picks up the inference task payload without needing direct access to the central PostgreSQL metadata database.",
+                        protocol: "Outbound HTTPS (Port 443)",
+                        posture: "Zero-Trust Edge (Outbound Only)",
+                        activeNodes: ['api', 'worker'],
+                        activePaths: ['api-worker']
+                    },
+                    {
+                        title: "Step 3: Block-Level Hydration",
+                        description: "The SG worker runs the inference script. FlexCache checks the local cache at the 4KB block level. 480GB of unchanged data is served instantly from local flash. For the 20GB of newly changed model weights, FlexCache pulls ONLY those specific blocks across the WAN in real-time.",
+                        protocol: "ONTAP Intercluster (Ports 11104/11105)",
+                        posture: "Encrypted Block Transit",
+                        activeNodes: ['worker', 'flexcache', 'origin'],
+                        activePaths: ['worker-cache', 'cache-origin']
+                    },
+                    {
+                        title: "Step 4: Local Inference & Action",
+                        description: "With the delta blocks streamed in real-time, the Edge Worker scores the 10M transactions continuously. It immediately writes the scores to a local SG AML Database and pushes flagged anomalies to the APAC Fraud Dashboard.",
+                        protocol: "Local DB Conn (Port 5432) & HTTP",
+                        posture: "Isolated Edge Action",
+                        activeNodes: ['worker', 'amldb', 'dashboard', 'flexcache'],
+                        activePaths: ['worker-cache', 'worker-amldb', 'worker-dashboard']
+                    },
+                    {
+                        title: "Step 5: Status Synchronization",
+                        description: "The pipeline completes with zero stalled wait time. By only transferring the 20GB block delta, egress costs were $1.60 instead of $40.00. The Edge Worker sends a final 'Success' status back to the central US Airflow orchestrator.",
+                        protocol: "Outbound HTTPS (Port 443)",
+                        posture: "Status Telemetry",
+                        activeNodes: ['worker', 'api'],
+                        activePaths: ['worker-api']
+                    }
+                ],
+                traditional: [
+                    {
+                        title: "Step 1: The Model Update",
+                        description: "The US Data Science team updates 20GB of weights in the Master Model. Because standard S3 object storage is immutable, the ENTIRE 500GB object is replaced. Shortly after, POS Gateways stream 10M transactions, triggering the pipeline.",
+                        protocol: "Object Replacement / Event Stream",
+                        posture: "Data Immutability Constraint",
+                        activeNodes: ['pos-t', 'kafka-t', 'api-t', 'scheduler-t', 'db-t', 'origin-t'],
+                        activePaths: ['pos-kafka-t', 'kafka-api-t']
+                    },
+                    {
+                        title: "Step 2: Massive WAN Transfer",
+                        description: "The SG Worker needs the updated model to process the transactions. Because it cannot pull just the 20GB delta from the immutable object, it executes `aws s3 cp` to download the FULL 500GB object over the WAN.",
+                        protocol: "Outbound HTTPS (S3 API or rsync)",
+                        posture: "Full Data Copy over WAN",
+                        activeNodes: ['api-t', 'worker-t', 'origin-t'],
+                        activePaths: ['api-worker-t', 'origin-worker-copy-t']
+                    },
+                    {
+                        title: "Step 3: Stalled Execution",
+                        description: "The Airflow pipeline is stalled. The worker is waiting for the 500GB download to complete. The transactions sit un-scored for 45 minutes, violating the sub-second SLA required for fraud detection.",
+                        protocol: "Idle Waiting",
+                        posture: "Inefficient Compute Usage",
+                        activeNodes: ['worker-t'],
+                        activePaths: []
+                    },
+                    {
+                        title: "Step 4: Delayed Action & High Cost",
+                        description: "Finally, the full 500GB is downloaded. The worker scores the data. Egress costs are $40.00 for this single run (despite only 20GB actually changing). By the time the alert hits the dashboard, the fraudster has already left the store.",
+                        protocol: "Local DB Conn & HTTP",
+                        posture: "SLA Violated",
+                        activeNodes: ['worker-t', 'amldb-t', 'dashboard-t'],
+                        activePaths: ['worker-amldb-t', 'worker-dashboard-t', 'worker-api-t']
+                    }
+                ]
+            },
+
+            init() {
+                this.buildStepButtons('modern');
+                this.buildStepButtons('traditional');
+                this.startTimer();
+                this.updateUI();
+                lucide.createIcons();
+            },
+
+            setTab(tab) {
+                this.state.tab = tab;
+                this.state[`${tab}Step`] = 0;
+                this.state.isPlaying = true;
+                this.startTimer();
+                this.updateUI();
+            },
+
+            setStep(tab, index) {
+                this.state[`${tab}Step`] = index;
+                this.state.isPlaying = false;
+                this.stopTimer();
+                this.updateUI();
+            },
+
+            togglePlay() {
+                this.state.isPlaying = !this.state.isPlaying;
+                if (this.state.isPlaying) this.startTimer();
+                else this.stopTimer();
+                this.updateUI();
+            },
+
+            startTimer() {
+                this.stopTimer();
+                if (this.state.isPlaying) {
+                    this.timer = setInterval(() => {
+                        const t = this.state.tab;
+                        const maxSteps = this.data[t].length;
+                        this.state[`${t}Step`] = (this.state[`${t}Step`] + 1) % maxSteps;
+                        this.updateUI();
+                    }, 6000);
+                }
+            },
+
+            stopTimer() {
+                if (this.timer) clearInterval(this.timer);
+            },
+
+            buildStepButtons(tab) {
+                const container = document.getElementById(`${tab}-steps-container`);
+                let html = '';
+                this.data[tab].forEach((step, i) => {
+                    const activeBg = tab === 'modern' ? 'bg-blue-50 border-blue-200 text-blue-800 shadow-sm' : 'bg-red-50 border-red-200 text-red-800 shadow-sm';
+                    const hoverBg = 'hover:bg-slate-50 text-slate-600 border-transparent';
+                    const barColor = tab === 'modern' ? 'bg-blue-400' : 'bg-red-400';
+                    
+                    html += `
+                        <button id="btn-${tab}-step-${i}" onclick="app.setStep('${tab}', ${i})" class="w-full text-left px-4 py-3 rounded-lg mb-1 transition-all duration-300 relative overflow-hidden border ${hoverBg}">
+                            <div id="prog-${tab}-${i}" class="absolute left-0 bottom-0 h-1 ${barColor} w-0"></div>
+                            <div class="font-bold text-xs uppercase tracking-wide opacity-50 mb-1">Step ${i + 1}</div>
+                            <div class="font-medium text-sm">${step.title}</div>
+                        </button>
+                    `;
+                });
+                container.innerHTML = html;
+            },
+
+            updateUI() {
+                const t = this.state.tab;
+                const stepIdx = this.state[`${t}Step`];
+                const currentData = this.data[t][stepIdx];
+
+                // Toggle views
+                document.getElementById('view-modern').classList.toggle('hidden-el', t !== 'modern');
+                document.getElementById('view-traditional').classList.toggle('hidden-el', t !== 'traditional');
+                
+                // Toggle Tab Buttons styling
+                const modBtn = document.getElementById('tab-modern');
+                const tradBtn = document.getElementById('tab-traditional');
+                if (t === 'modern') {
+                    modBtn.className = "flex-1 sm:flex-none flex items-center justify-center gap-2 px-6 py-3 rounded-lg font-semibold transition-all duration-300 bg-blue-600 text-white shadow-md";
+                    tradBtn.className = "flex-1 sm:flex-none flex items-center justify-center gap-2 px-6 py-3 rounded-lg font-semibold transition-all duration-300 bg-transparent text-slate-600 hover:bg-slate-100";
+                } else {
+                    tradBtn.className = "flex-1 sm:flex-none flex items-center justify-center gap-2 px-6 py-3 rounded-lg font-semibold transition-all duration-300 bg-red-600 text-white shadow-md";
+                    modBtn.className = "flex-1 sm:flex-none flex items-center justify-center gap-2 px-6 py-3 rounded-lg font-semibold transition-all duration-300 bg-transparent text-slate-600 hover:bg-slate-100";
+                }
+
+                // Update Play/Pause Button
+                const playIconHtml = this.state.isPlaying ? `<i data-lucide="pause" class="w-[14px] h-[14px] text-amber-500"></i>` : `<i data-lucide="play" class="w-[14px] h-[14px] text-green-500"></i>`;
+                const playText = this.state.isPlaying ? 'Pause' : 'Auto-Play';
+                
+                const iconContainer = document.getElementById(t === 'modern' ? 'modern-play-icon' : 'trad-play-icon');
+                if(iconContainer) {
+                    iconContainer.innerHTML = playIconHtml;
+                    document.getElementById(t === 'modern' ? 'modern-play-text' : 'trad-play-text').innerText = playText;
+                    lucide.createIcons({root: iconContainer});
+                }
+
+                // Update Steps List
+                this.data[t].forEach((_, i) => {
+                    const btn = document.getElementById(`btn-${t}-step-${i}`);
+                    const prog = document.getElementById(`prog-${t}-${i}`);
+                    
+                    const activeBg = t === 'modern' ? 'bg-blue-50 border-blue-200 text-blue-800 shadow-sm' : 'bg-red-50 border-red-200 text-red-800 shadow-sm';
+                    const hoverBg = 'hover:bg-slate-50 text-slate-600 border-transparent';
+                    
+                    if (i === stepIdx) {
+                        btn.className = `w-full text-left px-4 py-3 rounded-lg mb-1 transition-all duration-300 relative overflow-hidden border ${activeBg}`;
+                        
+                        // Restart CSS animation for progress bar
+                        prog.classList.remove('animate-progress');
+                        void prog.offsetWidth; // force reflow
+                        if (this.state.isPlaying) prog.classList.add('animate-progress');
+                        else prog.style.width = '100%';
+                        
+                    } else {
+                        btn.className = `w-full text-left px-4 py-3 rounded-lg mb-1 transition-all duration-300 relative overflow-hidden border ${hoverBg}`;
+                        prog.classList.remove('animate-progress');
+                        prog.style.width = '0%';
+                    }
+                });
+
+                // Update Text Details
+                const shortT = t === 'modern' ? 'modern' : 'trad';
+                document.getElementById(`${shortT}-desc`).innerText = currentData.description;
+                document.getElementById(`${shortT}-protocol`).innerText = currentData.protocol;
+                document.getElementById(`${shortT}-posture`).innerText = currentData.posture;
+
+                // Toggle Diagram Components
+                this.toggleDiagramElements(t, currentData);
+            },
+
+            toggleDiagramElements(viewType, stepData) {
+                const viewEl = document.getElementById(`view-${viewType}`);
+                const activeNodes = stepData.activeNodes;
+                const activePaths = stepData.activePaths;
+
+                // 1. Process standard Nodes
+                viewEl.querySelectorAll('[data-node]').forEach(el => {
+                    const id = el.getAttribute('data-node');
+                    const activeClasses = el.getAttribute('data-active-class').split(' ');
+                    const inactiveClasses = el.getAttribute('data-inactive-class').split(' ');
+                    
+                    if (activeNodes.includes(id)) {
+                        el.classList.remove(...inactiveClasses);
+                        el.classList.add(...activeClasses);
+                    } else {
+                        el.classList.remove(...activeClasses);
+                        el.classList.add(...inactiveClasses);
+                    }
+                });
+
+                // 2. Process Icon Wrappers (colors)
+                viewEl.querySelectorAll('[data-icon-wrap]').forEach(el => {
+                    const id = el.getAttribute('data-icon-wrap');
+                    const activeClasses = el.getAttribute('data-active-class').split(' ');
+                    const inactiveClasses = el.getAttribute('data-inactive-class').split(' ');
+                    
+                    // We check if the parent node is active
+                    // In traditional view, origin node name is 'origin-t', wrapper is 'origin-t'
+                    if (activeNodes.includes(id) || activeNodes.includes(id.replace('-t', ''))) {
+                        el.classList.remove(...inactiveClasses);
+                        el.classList.add(...activeClasses);
+                    } else {
+                        el.classList.remove(...activeClasses);
+                        el.classList.add(...inactiveClasses);
+                    }
+                });
+
+                // 3. Process Lines/Paths
+                viewEl.querySelectorAll('[data-path]').forEach(el => {
+                    const id = el.getAttribute('data-path');
+                    const activeClasses = el.getAttribute('data-active-class').split(' ');
+                    const inactiveClasses = el.getAttribute('data-inactive-class').split(' ');
+                    
+                    // Handle bridged paths
+                    let isActive = activePaths.includes(id);
+                    if(id.startsWith('bridge-api')) {
+                        isActive = activePaths.includes(viewType === 'modern' ? 'api-worker' : 'api-worker-t') || 
+                                   activePaths.includes(viewType === 'modern' ? 'worker-api' : 'worker-api-t');
+                    }
+
+                    if (isActive) {
+                        el.classList.remove(...inactiveClasses);
+                        el.classList.add(...activeClasses);
+                    } else {
+                        el.classList.remove(...activeClasses);
+                        el.classList.add(...inactiveClasses);
+                    }
+                });
+
+                // 4. Process Path Icons (Arrows)
+                viewEl.querySelectorAll('[data-path-icon]').forEach(el => {
+                    const id = el.getAttribute('data-path-icon');
+                    if (activePaths.includes(id)) {
+                        el.classList.remove('hidden-el');
+                    } else {
+                        el.classList.add('hidden-el');
+                    }
+                });
+
+                // 5. Handle step-specific display overlays (badges)
+                viewEl.querySelectorAll('[data-show-on-step]').forEach(el => {
+                    const reqStep = parseInt(el.getAttribute('data-show-on-step'));
+                    if (this.state[`${viewType}Step`] === reqStep) {
+                        el.classList.remove('hidden-el');
+                    } else {
+                        el.classList.add('hidden-el');
+                    }
+                });
+                viewEl.querySelectorAll('[data-show-from-step]').forEach(el => {
+                    const reqStep = parseInt(el.getAttribute('data-show-from-step'));
+                    if (this.state[`${viewType}Step`] >= reqStep) {
+                        el.classList.remove('hidden-el');
+                    } else {
+                        el.classList.add('hidden-el');
+                    }
+                });
+
+                // --- TRADITIONAL VIEW SPECIFIC OVERRIDES ---
+                if (viewType === 'traditional') {
+                    const stepIdx = this.state.traditionalStep;
+                    
+                    // Origin Node
+                    const oNode = document.getElementById('trad-origin-node');
+                    const oIcon = document.getElementById('trad-origin-icon');
+                    if (activeNodes.includes('origin-t')) {
+                        if (stepIdx === 0) {
+                            oNode.className = "p-5 rounded-lg border-2 transition-all duration-300 flex items-center justify-center flex-col gap-2 border-purple-500 bg-purple-100 shadow-md";
+                            oIcon.className = "text-purple-600";
+                        } else {
+                            oNode.className = "p-5 rounded-lg border-2 transition-all duration-300 flex items-center justify-center flex-col gap-2 border-orange-500 bg-orange-50 shadow-md";
+                            oIcon.className = "text-orange-600";
+                        }
+                    } else {
+                        oNode.className = "p-5 rounded-lg border-2 transition-all duration-300 flex items-center justify-center flex-col gap-2 border-slate-200 bg-white";
+                        oIcon.className = "text-slate-400";
+                    }
+
+                    // Worker Node
+                    const wNode = document.getElementById('trad-worker-node');
+                    const wIcon = document.getElementById('trad-worker-icon');
+                    if (activeNodes.includes('worker-t')) {
+                        if (stepIdx === 2) {
+                            wNode.className = "p-5 rounded-lg border-2 transition-all duration-300 flex items-center justify-center flex-col gap-3 text-center relative border-red-500 bg-red-100 shadow-md scale-105";
+                            wIcon.className = "text-red-600";
+                        } else {
+                            wNode.className = "p-5 rounded-lg border-2 transition-all duration-300 flex items-center justify-center flex-col gap-3 text-center relative border-orange-500 bg-orange-50 shadow-md scale-105";
+                            wIcon.className = "text-orange-600";
+                        }
+                    } else {
+                        wNode.className = "p-5 rounded-lg border-2 transition-all duration-300 flex items-center justify-center flex-col gap-3 text-center relative border-slate-200 bg-white";
+                        wIcon.className = "text-slate-400";
+                    }
+
+                    // Download Path (Thick Red Line)
+                    const dPath = document.getElementById('trad-download-path');
+                    if (activePaths.includes('origin-worker-copy-t')) {
+                        dPath.className = "absolute right-12 md:right-[15%] h-full transition-all duration-500 w-4 bg-red-500/50 animate-pulse border-l-4 border-r-4 border-red-600";
+                    } else {
+                        dPath.className = "absolute right-12 md:right-[15%] h-full transition-all duration-500 w-1 border-l-4 border-dashed border-slate-200";
+                    }
+                }
+            }
+        };
+
+        // Initialize application when DOM is ready
+        document.addEventListener('DOMContentLoaded', () => {
+            app.init();
+        });
+    </script>
+</body>
+</html>
