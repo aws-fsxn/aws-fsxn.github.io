@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Airflow & FlexCache Animation</title>
+    <title>Serving Large ML Models to Remote Regions</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
@@ -19,12 +19,6 @@
             border-radius: 2px;
             opacity: 0;
         }
-        .glow {
-            box-shadow: 0 0 15px rgba(59, 130, 246, 0.5);
-        }
-        .cache-hit-glow {
-            box-shadow: 0 0 15px rgba(16, 185, 129, 0.6);
-        }
         .massive-transfer {
             position: absolute;
             height: 8px;
@@ -33,219 +27,192 @@
             transform: scaleX(0);
             opacity: 0;
         }
+        .glow {
+            box-shadow: 0 0 15px rgba(59, 130, 246, 0.5);
+        }
+        .cache-hit-glow {
+            box-shadow: 0 0 15px rgba(16, 185, 129, 0.6);
+        }
+        .alert-glow {
+            box-shadow: 0 0 15px rgba(239, 68, 68, 0.6);
+        }
     </style>
 </head>
 <body class="bg-slate-900 text-slate-100 font-sans min-h-screen p-4 md:p-8 flex flex-col items-center justify-start overflow-auto">
 
-    <!-- Header -->
-    <div class="max-w-6xl w-full flex flex-col md:flex-row justify-between items-center mt-4 mb-4 gap-4 z-10">
-        <div>
-            <h1 class="text-2xl md:text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-emerald-400">
-                Solving the Data Gravity Paradox
-            </h1>
-            <p class="text-slate-400 text-sm mt-1">Apache Airflow 3.0 EdgeExecutor & FSxN FlexCache vs Traditional Flow</p>
-        </div>
+    <!-- Header & Context -->
+    <div class="max-w-7xl w-full flex flex-col items-center mt-4 mb-4 gap-2 z-10 text-center">
+        <h1 class="text-2xl md:text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-emerald-400">
+            Serving Large ML Models to Remote Regions
+        </h1>
+        <p class="text-slate-400 text-sm md:text-base max-w-3xl mt-2">
+            Visualizing the impact of storage-layer caching (FlexCache) vs. orchestrator-driven data movement (aws s3 cp) across a 4-region global deployment.
+        </p>
     </div>
 
     <!-- Status Subtitle / Storyboard Text -->
-    <div class="max-w-6xl w-full mb-6 h-12 relative">
-        <div id="story-text" class="absolute w-full text-center text-lg md:text-xl font-medium text-blue-200 opacity-0 transform translate-y-4">
+    <div class="max-w-7xl w-full mb-6 h-16 relative bg-slate-800/50 rounded-xl border border-slate-700 flex items-center justify-center overflow-hidden">
+        <div id="story-text" class="absolute w-full px-4 text-center text-base md:text-lg font-medium text-blue-200 opacity-0 transform translate-y-4">
             <!-- Text injected by GSAP -->
         </div>
     </div>
 
     <!-- SECTION 1: MODERN ARCHITECTURE -->
-    <h2 class="text-lg font-bold text-emerald-400 mb-3 w-full max-w-6xl text-left uppercase tracking-wide flex items-center gap-2">
-        <i data-lucide="check-circle" class="w-5 h-5"></i> Modern Edge Architecture (FlexCache)
+    <h2 class="text-lg font-bold text-emerald-400 mb-3 w-full max-w-7xl text-left uppercase tracking-wide flex items-center gap-2">
+        <i data-lucide="layers" class="w-5 h-5"></i> Storage-Layer Data Movement (FlexCache)
     </h2>
     
-    <!-- Modern Architecture Canvas -->
-    <div class="max-w-6xl w-full bg-slate-800 border border-slate-700 rounded-2xl p-6 md:p-10 relative flex flex-col md:flex-row gap-8 justify-between items-center shadow-2xl mb-12">
+    <div class="max-w-7xl w-full bg-slate-800 border border-slate-700 rounded-2xl p-6 md:p-10 relative flex flex-col md:flex-row gap-8 justify-between items-center shadow-2xl mb-12">
 
-        <!-- ================= LEFT: US EAST (CENTRAL) ================= -->
-        <div class="w-full md:w-1/3 flex flex-col gap-6 relative z-10">
+        <!-- LEFT: US EAST (CENTRAL) -->
+        <div class="w-full md:w-1/3 flex flex-col gap-5 relative z-10">
             <div class="absolute -top-8 left-0 text-xs font-bold text-slate-500 uppercase tracking-widest flex items-center gap-2">
                 <i data-lucide="map-pin" class="w-3 h-3"></i> AWS US-East-1 (Data Hub)
             </div>
 
-            <!-- Kafka -->
-            <div id="node-kafka" class="bg-slate-700/50 border border-slate-600 p-4 rounded-xl flex items-center gap-4 opacity-50">
-                <div class="bg-orange-500/20 p-2 rounded-lg text-orange-400"><i data-lucide="radio" class="w-6 h-6"></i></div>
-                <div>
-                    <h3 class="font-bold text-sm">Kafka Stream</h3>
-                    <p class="text-xs text-slate-400">10M Transactions</p>
-                </div>
-            </div>
-
-            <!-- Airflow Control Plane -->
-            <div id="node-airflow" class="bg-slate-700/50 border border-slate-600 p-4 rounded-xl flex items-center gap-4 opacity-50">
+            <!-- Orchestrator (No Sync Scripts) -->
+            <div id="node-airflow" class="bg-slate-700/50 border border-emerald-600/50 p-4 rounded-xl flex items-center gap-4 opacity-50 relative">
+                <div class="absolute -top-3 -right-2 bg-emerald-600 text-white text-[9px] font-bold px-2 py-0.5 rounded shadow">Zero Sync Scripts</div>
                 <div class="bg-blue-500/20 p-2 rounded-lg text-blue-400"><i data-lucide="server" class="w-6 h-6"></i></div>
                 <div>
-                    <h3 class="font-bold text-sm">Airflow 3.0 Central</h3>
-                    <p class="text-xs text-slate-400">Scheduler & Meta DB</p>
+                    <h3 class="font-bold text-sm">Airflow Scheduler</h3>
+                    <p class="text-xs text-slate-400">Pure orchestration only</p>
                 </div>
             </div>
 
-            <!-- Master Storage -->
+            <!-- Single Source of Truth -->
             <div id="node-master" class="bg-slate-700/50 border border-slate-600 p-4 rounded-xl flex items-center gap-4 opacity-50 relative">
-                <div class="bg-emerald-500/20 p-2 rounded-lg text-emerald-400"><i data-lucide="hard-drive" class="w-6 h-6"></i></div>
+                <div class="bg-emerald-500/20 p-2 rounded-lg text-emerald-400"><i data-lucide="database" class="w-6 h-6"></i></div>
                 <div>
-                    <h3 class="font-bold text-sm">FSxN Origin Volume</h3>
-                    <p class="text-xs text-slate-400">500GB Fraud Model</p>
+                    <h3 class="font-bold text-sm">Origin Volume (FSxN)</h3>
+                    <p class="text-xs text-slate-400">Single Source of Truth</p>
                 </div>
-                <!-- 20GB Delta Indicator -->
-                <div id="delta-indicator" class="absolute -right-2 top-2 bg-blue-500 text-white text-[10px] font-bold px-2 py-0.5 rounded shadow opacity-0">
-                    20GB Updated
+                <div id="delta-indicator" class="absolute -right-2 -bottom-3 bg-blue-500 text-white text-[10px] font-bold px-2 py-0.5 rounded shadow opacity-0">
+                    20GB Weights Updated
                 </div>
             </div>
         </div>
 
-        <!-- ================= MIDDLE: WAN & TRANSFER ================= -->
-        <div class="hidden md:flex w-1/3 flex-col items-center justify-center relative h-72">
-            <div class="text-xs font-bold text-slate-500 tracking-widest uppercase mb-16">Global WAN</div>
+        <!-- MIDDLE: WAN & TRANSFER -->
+        <div class="hidden md:flex w-1/3 flex-col items-center justify-center relative h-56">
+            <div class="text-xs font-bold text-slate-500 tracking-widest uppercase mb-16">Global Network (To 4 Regions)</div>
             
-            <!-- Control Plane Line -->
-            <div class="w-full h-[2px] wan-line relative mb-20 opacity-30" id="wan-control">
-                <div id="signal-control" class="absolute top-1/2 -translate-y-1/2 left-0 w-3 h-3 bg-blue-400 rounded-full shadow-[0_0_10px_#60a5fa] opacity-0"></div>
-                <div class="absolute -top-7 left-1/2 -translate-x-1/2 text-[10px] text-blue-400 font-semibold opacity-0" id="label-control">HTTPS Task Poll</div>
-            </div>
-
             <!-- Data Plane Line -->
             <div class="w-full h-[2px] wan-line relative opacity-30" id="wan-data">
-                <div class="absolute -top-7 left-1/2 -translate-x-1/2 text-[10px] text-emerald-400 font-semibold opacity-0" id="label-data">4KB Block Hydration</div>
-                <!-- Particles container -->
+                <div class="absolute -top-8 left-1/2 -translate-x-1/2 text-[10px] text-emerald-400 font-semibold opacity-0 text-center w-full" id="label-data">
+                    Storage-Layer Lazy Load<br/>(Only fetching 4KB blocks)
+                </div>
                 <div id="data-particles" class="absolute top-1/2 -translate-y-1/2 left-0 w-full h-full flex items-center">
-                    <!-- JS will inject particles here -->
+                    <!-- Particles -->
                 </div>
             </div>
 
-            <!-- Egress Cost Tracker -->
-            <div id="egress-tracker" class="absolute -bottom-6 bg-slate-800 border border-slate-600 px-4 py-2 rounded-lg shadow-xl opacity-0">
-                <div class="text-[10px] text-slate-400 uppercase tracking-wide">Egress Cost</div>
-                <div class="text-xl font-mono font-bold text-green-400 flex items-center gap-2">
-                    $<span id="cost-value">0.00</span>
-                    <span id="cost-strike" class="text-sm text-red-400 line-through hidden">$10.00</span>
+            <!-- Egress Cost Tracker (Scaled to 4 regions) -->
+            <div id="egress-tracker" class="absolute -bottom-8 bg-slate-900 border border-emerald-600/50 px-4 py-2 rounded-lg shadow-xl opacity-0 flex flex-col items-center">
+                <div class="text-[10px] text-slate-400 uppercase tracking-wide">Monthly Cost (At Scale)</div>
+                <div class="text-xl font-mono font-bold text-emerald-400 flex items-center gap-2">
+                    $<span id="cost-value">0</span>/mo
                 </div>
+                <div class="text-[9px] text-slate-500 mt-1">across 4 global regions</div>
             </div>
         </div>
 
-        <!-- ================= RIGHT: SINGAPORE (EDGE) ================= -->
-        <div class="w-full md:w-1/3 flex flex-col gap-6 relative z-10">
+        <!-- RIGHT: SINGAPORE (EDGE) -->
+        <div class="w-full md:w-1/3 flex flex-col gap-5 relative z-10">
             <div class="absolute -top-8 left-0 text-xs font-bold text-slate-500 uppercase tracking-widest flex items-center gap-2">
-                <i data-lucide="map-pin" class="w-3 h-3"></i> AP-Southeast-1 (Singapore)
+                <i data-lucide="map-pin" class="w-3 h-3"></i> AP-Southeast-1 (1 of 4 Regions)
             </div>
 
             <!-- Edge Worker -->
             <div id="node-worker" class="bg-slate-700/50 border border-slate-600 p-4 rounded-xl flex items-center gap-4 opacity-50 relative">
                 <div class="bg-blue-500/20 p-2 rounded-lg text-blue-400"><i data-lucide="activity" class="w-6 h-6"></i></div>
                 <div>
-                    <h3 class="font-bold text-sm">EdgeExecutor</h3>
-                    <p class="text-xs text-slate-400">Zero-Trust Processing</p>
+                    <h3 class="font-bold text-sm">Edge Worker</h3>
+                    <p class="text-xs text-slate-400">Scoring Transactions</p>
                 </div>
-                <div id="status-inference" class="absolute -right-2 -top-2 bg-emerald-500 text-white text-[10px] font-bold px-2 py-0.5 rounded shadow opacity-0 flex items-center gap-1 whitespace-nowrap">
-                    <i data-lucide="check-circle" class="w-3 h-3"></i> ms latency
+                <div id="status-inference" class="absolute -right-2 -top-2 bg-emerald-500 text-white text-[10px] font-bold px-2 py-0.5 rounded shadow opacity-0 flex items-center gap-1">
+                    <i data-lucide="zap" class="w-3 h-3"></i> Instant Execution
                 </div>
             </div>
 
             <!-- FlexCache -->
             <div id="node-flexcache" class="bg-slate-700/50 border border-slate-600 p-4 rounded-xl flex flex-col gap-3 opacity-50 relative">
+                <div class="absolute -top-3 -right-2 bg-blue-600 text-white text-[9px] font-bold px-2 py-0.5 rounded shadow">Block Locality Preserved</div>
                 <div class="flex items-center gap-4">
                     <div class="bg-emerald-500/20 p-2 rounded-lg text-emerald-400"><i data-lucide="hard-drive" class="w-6 h-6"></i></div>
                     <div>
-                        <h3 class="font-bold text-sm">FlexCache Local Volume</h3>
-                        <p class="text-xs text-slate-400">Lazy-Loading NFS Mount</p>
+                        <h3 class="font-bold text-sm">FlexCache Volume</h3>
+                        <p class="text-xs text-slate-400">NFS Local Mount</p>
                     </div>
                 </div>
                 <!-- Visual Cache Representation -->
-                <div class="w-full h-4 bg-slate-800 rounded overflow-hidden flex shadow-inner">
+                <div class="w-full h-4 bg-slate-800 rounded overflow-hidden flex shadow-inner relative">
                     <div id="cache-hit-bar" class="h-full bg-emerald-500 w-0 relative flex items-center justify-center text-[8px] font-bold"></div>
                     <div id="cache-miss-bar" class="h-full bg-blue-500 w-0 relative flex items-center justify-center text-[8px] font-bold"></div>
-                </div>
-            </div>
-
-            <!-- Downstream DB -->
-            <div id="node-db" class="bg-slate-700/50 border border-slate-600 p-4 rounded-xl flex items-center gap-4 opacity-50">
-                <div class="bg-purple-500/20 p-2 rounded-lg text-purple-400"><i data-lucide="database" class="w-6 h-6"></i></div>
-                <div>
-                    <h3 class="font-bold text-sm">Local AML Database</h3>
-                    <p class="text-xs text-slate-400">Scored Transactions Sink</p>
                 </div>
             </div>
         </div>
     </div>
 
     <!-- SECTION 2: TRADITIONAL ARCHITECTURE -->
-    <h2 class="text-lg font-bold text-red-400 mb-3 w-full max-w-6xl text-left uppercase tracking-wide flex items-center gap-2">
-        <i data-lucide="alert-triangle" class="w-5 h-5"></i> Traditional Architecture (Full Copy)
+    <h2 class="text-lg font-bold text-red-400 mb-3 w-full max-w-7xl text-left uppercase tracking-wide flex items-center gap-2">
+        <i data-lucide="package-x" class="w-5 h-5"></i> Orchestrator Data Movement (Full Copy)
     </h2>
     
-    <!-- Traditional Architecture Canvas -->
-    <div class="max-w-6xl w-full bg-slate-800 border border-slate-700 rounded-2xl p-6 md:p-10 relative flex flex-col md:flex-row gap-8 justify-between items-center shadow-2xl mb-8">
+    <div class="max-w-7xl w-full bg-slate-800 border border-slate-700 rounded-2xl p-6 md:p-10 relative flex flex-col md:flex-row gap-8 justify-between items-center shadow-2xl mb-8">
 
-        <!-- ================= LEFT: US EAST (CENTRAL) ================= -->
-        <div class="w-full md:w-1/3 flex flex-col gap-6 relative z-10">
+        <!-- LEFT: US EAST (CENTRAL) -->
+        <div class="w-full md:w-1/3 flex flex-col gap-5 relative z-10">
             <div class="absolute -top-8 left-0 text-xs font-bold text-slate-500 uppercase tracking-widest flex items-center gap-2">
                 <i data-lucide="map-pin" class="w-3 h-3"></i> AWS US-East-1 (Data Hub)
             </div>
 
-            <!-- Kafka -->
-            <div id="node-kafka-trad" class="bg-slate-700/50 border border-slate-600 p-4 rounded-xl flex items-center gap-4 opacity-50">
-                <div class="bg-orange-500/20 p-2 rounded-lg text-orange-400"><i data-lucide="radio" class="w-6 h-6"></i></div>
-                <div>
-                    <h3 class="font-bold text-sm">Kafka Stream</h3>
-                    <p class="text-xs text-slate-400">10M Transactions</p>
-                </div>
-            </div>
-
-            <!-- Airflow Control Plane -->
-            <div id="node-airflow-trad" class="bg-slate-700/50 border border-slate-600 p-4 rounded-xl flex items-center gap-4 opacity-50">
+            <!-- Orchestrator (With Sync Scripts) -->
+            <div id="node-airflow-trad" class="bg-slate-700/50 border border-red-600/50 p-4 rounded-xl flex items-center gap-4 opacity-50 relative">
+                <div class="absolute -top-3 -right-2 bg-red-600 text-white text-[9px] font-bold px-2 py-0.5 rounded shadow">Custom Sync Scripts</div>
                 <div class="bg-blue-500/20 p-2 rounded-lg text-blue-400"><i data-lucide="server" class="w-6 h-6"></i></div>
                 <div>
-                    <h3 class="font-bold text-sm">Airflow Central</h3>
-                    <p class="text-xs text-slate-400">Scheduler & Meta DB</p>
+                    <h3 class="font-bold text-sm">Airflow Scheduler</h3>
+                    <p class="text-xs text-slate-400">Managing data syncs</p>
                 </div>
             </div>
 
-            <!-- Master Storage -->
+            <!-- Immutable Storage -->
             <div id="node-master-trad" class="bg-slate-700/50 border border-slate-600 p-4 rounded-xl flex items-center gap-4 opacity-50 relative">
-                <div class="bg-slate-500/20 p-2 rounded-lg text-slate-400"><i data-lucide="hard-drive" class="w-6 h-6"></i></div>
+                <div class="bg-slate-500/20 p-2 rounded-lg text-slate-400"><i data-lucide="database" class="w-6 h-6"></i></div>
                 <div>
                     <h3 class="font-bold text-sm">Standard S3 / EBS</h3>
-                    <p class="text-xs text-slate-400">Immutable 500GB Model</p>
+                    <p class="text-xs text-slate-400">Immutable 500GB Object</p>
                 </div>
             </div>
         </div>
 
-        <!-- ================= MIDDLE: WAN & TRANSFER ================= -->
-        <div class="hidden md:flex w-1/3 flex-col items-center justify-center relative h-72">
-            <div class="text-xs font-bold text-slate-500 tracking-widest uppercase mb-16">Global WAN</div>
+        <!-- MIDDLE: WAN & TRANSFER -->
+        <div class="hidden md:flex w-1/3 flex-col items-center justify-center relative h-56">
+            <div class="text-xs font-bold text-slate-500 tracking-widest uppercase mb-16">Global Network (To 4 Regions)</div>
             
-            <!-- Control Plane Line -->
-            <div class="w-full h-[2px] wan-line relative mb-20 opacity-30" id="wan-control-trad">
-                <div id="signal-control-trad" class="absolute top-1/2 -translate-y-1/2 left-0 w-3 h-3 bg-blue-400 rounded-full shadow-[0_0_10px_#60a5fa] opacity-0"></div>
-                <div class="absolute -top-7 left-1/2 -translate-x-1/2 text-[10px] text-blue-400 font-semibold opacity-0" id="label-control-trad">HTTPS Task Poll</div>
-            </div>
-
             <!-- Data Plane Line (Traditional Full Copy) -->
             <div class="w-full h-[2px] wan-line relative opacity-30" id="wan-data-trad">
-                <div class="absolute -top-7 left-1/2 -translate-x-1/2 text-[10px] text-red-400 font-semibold opacity-0" id="label-data-trad">Full 500GB Transfer (aws s3 cp)</div>
-                <!-- Massive block transfer indicator -->
+                <div class="absolute -top-8 left-1/2 -translate-x-1/2 text-[10px] text-red-400 font-semibold opacity-0 text-center w-full" id="label-data-trad">
+                    Orchestrator Sync (aws s3 cp)<br/>(Pulling entire 500GB file)
+                </div>
                 <div id="massive-transfer" class="massive-transfer w-full top-1/2 -translate-y-1/2 left-0 bg-red-500 shadow-[0_0_15px_#ef4444]"></div>
             </div>
 
             <!-- Egress Cost Tracker -->
-            <div id="egress-tracker-trad" class="absolute -bottom-6 bg-slate-800 border border-slate-600 px-4 py-2 rounded-lg shadow-xl opacity-0">
-                <div class="text-[10px] text-slate-400 uppercase tracking-wide">Egress Cost</div>
+            <div id="egress-tracker-trad" class="absolute -bottom-8 bg-slate-900 border border-red-600/50 px-4 py-2 rounded-lg shadow-xl opacity-0 flex flex-col items-center">
+                <div class="text-[10px] text-slate-400 uppercase tracking-wide">Monthly Cost (At Scale)</div>
                 <div class="text-xl font-mono font-bold text-red-400 flex items-center gap-2">
-                    $<span id="cost-value-trad">0.00</span>
+                    $<span id="cost-value-trad">0</span>/mo
                 </div>
+                <div class="text-[9px] text-slate-500 mt-1">across 4 global regions</div>
             </div>
         </div>
 
-        <!-- ================= RIGHT: SINGAPORE (EDGE) ================= -->
-        <div class="w-full md:w-1/3 flex flex-col gap-6 relative z-10">
+        <!-- RIGHT: SINGAPORE (EDGE) -->
+        <div class="w-full md:w-1/3 flex flex-col gap-5 relative z-10">
             <div class="absolute -top-8 left-0 text-xs font-bold text-slate-500 uppercase tracking-widest flex items-center gap-2">
-                <i data-lucide="map-pin" class="w-3 h-3"></i> AP-Southeast-1 (Singapore)
+                <i data-lucide="map-pin" class="w-3 h-3"></i> AP-Southeast-1 (1 of 4 Regions)
             </div>
 
             <!-- Edge Worker -->
@@ -253,41 +220,31 @@
                 <div class="bg-blue-500/20 p-2 rounded-lg text-blue-400"><i data-lucide="activity" class="w-6 h-6"></i></div>
                 <div>
                     <h3 class="font-bold text-sm">Edge Worker</h3>
-                    <p class="text-xs text-slate-400">Idle / Stalled Pipeline</p>
+                    <p class="text-xs text-slate-400">Blocked / Waiting</p>
                 </div>
-                <div id="status-inference-trad" class="absolute -right-2 -top-2 bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded shadow opacity-0 flex items-center gap-1 whitespace-nowrap">
-                    <i data-lucide="clock" class="w-3 h-3"></i> pipeline stalled
+                <div id="status-inference-trad" class="absolute -right-2 -top-2 bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded shadow opacity-0 flex items-center gap-1">
+                    <i data-lucide="clock" class="w-3 h-3"></i> Sync Delay
                 </div>
             </div>
 
-            <!-- Standard Storage -->
+            <!-- Standard Storage Replica -->
             <div id="node-localdisk-trad" class="bg-slate-700/50 border border-slate-600 p-4 rounded-xl flex items-center gap-4 opacity-50 relative">
+                <div class="absolute -top-3 -right-2 bg-orange-600 text-white text-[9px] font-bold px-2 py-0.5 rounded shadow">Drift Risk</div>
                 <div class="bg-slate-500/20 p-2 rounded-lg text-slate-400"><i data-lucide="hard-drive" class="w-6 h-6"></i></div>
                 <div>
-                    <h3 class="font-bold text-sm">Standard Local Disk</h3>
-                    <p class="text-xs text-slate-400">Awaiting Full Copy</p>
-                </div>
-            </div>
-
-            <!-- Downstream DB -->
-            <div id="node-db-trad" class="bg-slate-700/50 border border-slate-600 p-4 rounded-xl flex items-center gap-4 opacity-50">
-                <div class="bg-purple-500/20 p-2 rounded-lg text-purple-400"><i data-lucide="database" class="w-6 h-6"></i></div>
-                <div>
-                    <h3 class="font-bold text-sm">Local AML Database</h3>
-                    <p class="text-xs text-slate-400">Scored Transactions Sink</p>
+                    <h3 class="font-bold text-sm">Local Replica</h3>
+                    <p class="text-xs text-slate-400">Awaiting full 500GB copy</p>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Initialization & Logic -->
     <script>
-        // Initialize Icons
         lucide.createIcons();
 
-        // Particle setup for FlexCache Hydration
+        // Particle setup for FlexCache
         const particleContainer = document.getElementById('data-particles');
-        const numParticles = 15;
+        const numParticles = 12;
         for (let i = 0; i < numParticles; i++) {
             let p = document.createElement('div');
             p.className = 'block-particle bg-blue-400 shadow-[0_0_8px_#60a5fa]';
@@ -295,119 +252,100 @@
             particleContainer.appendChild(p);
         }
 
-        // Setup GSAP Timeline for infinite loop
-        const tl = gsap.timeline({ repeat: -1, repeatDelay: 3 });
-
-        // Global cost tracker object
+        const tl = gsap.timeline({ repeat: -1, repeatDelay: 4 });
         const costData = { modern: 0, trad: 0 };
 
-        // Helper function for synchronized story text
-        function setStory(text, offset) {
-            tl.to('#story-text', { opacity: 0, y: -10, duration: 0.3 }, offset)
-              .set('#story-text', { innerText: text })
-              .fromTo('#story-text', { y: 10, opacity: 0 }, { y: 0, opacity: 1, duration: 0.5 });
+        function updateStory(text) {
+            return gsap.to('#story-text', {
+                opacity: 0,
+                y: -10,
+                duration: 0.3,
+                onComplete: () => {
+                    document.getElementById('story-text').innerText = text;
+                    gsap.fromTo('#story-text', {y: 10, opacity: 0}, {y: 0, opacity: 1, duration: 0.5});
+                }
+            });
         }
 
         // --- ANIMATION SEQUENCE ---
 
-        // 1. Initial Reset (Both Canvases)
-        tl.set('.opacity-50, #node-kafka, #node-airflow, #node-master, #node-worker, #node-flexcache, #node-db, #node-kafka-trad, #node-airflow-trad, #node-master-trad, #node-worker-trad, #node-localdisk-trad, #node-db-trad', { opacity: 0.5, scale: 1, boxShadow: 'none' })
-          .set('#wan-control, #wan-data, #wan-control-trad, #wan-data-trad', { opacity: 0.3 })
-          .set('#cache-hit-bar', { width: "0%", innerHTML: '' })
-          .set('#cache-miss-bar', { width: "0%", innerHTML: '' })
-          .set('#egress-tracker, #label-control, #label-data, #delta-indicator, #status-inference', { opacity: 0, y: 0 })
-          .set('#egress-tracker-trad, #label-control-trad, #label-data-trad, #status-inference-trad', { opacity: 0, y: 0 })
-          .set('#cost-strike', { display: 'none', opacity: 0 })
+        // 1. Initial Reset
+        tl.set('.opacity-50', { opacity: 0.5 })
+          .set('#wan-data, #wan-data-trad', { opacity: 0.3 })
+          .set('#cache-hit-bar', { w: 0, innerHTML: '' })
+          .set('#cache-miss-bar', { w: 0, innerHTML: '' })
+          .set('#egress-tracker, #label-data, #delta-indicator, #status-inference', { opacity: 0 })
+          .set('#egress-tracker-trad, #label-data-trad, #status-inference-trad', { opacity: 0 })
           .set(costData, { modern: 0, trad: 0 })
-          .set('#cost-value', { innerHTML: '0.00' })
-          .set('#cost-value-trad', { innerHTML: '0.00' })
+          .set('#cost-value, #cost-value-trad', { innerHTML: '0' })
           .set('.block-particle', { x: 0, opacity: 0 })
-          .set('#massive-transfer', { scaleX: 0, opacity: 0 })
-          .set('#story-text', { opacity: 0, y: 0 });
+          .set('#massive-transfer', { scaleX: 0, opacity: 0 });
 
-        // 2. The Trigger Event
-        setStory("1. Kafka registers 10M APAC transactions, triggering Airflow 3.0.", "+=0.5");
-        tl.to('#node-kafka, #node-kafka-trad', { opacity: 1, scale: 1.05, duration: 0.4, ease: "back.out" })
-          .to('#node-kafka, #node-kafka-trad', { scale: 1, duration: 0.2 })
-          .to('#node-airflow, #node-airflow-trad', { opacity: 1, scale: 1.05, duration: 0.4, ease: "back.out" }, "-=0.2")
-          .to('#node-airflow, #node-airflow-trad', { scale: 1, duration: 0.2 });
+        // 2. Event Trigger (Model Update)
+        tl.add(updateStory("1. The 500GB Fraud Model is retrained in the US. 4 global edge regions need the update."))
+          .to('#node-master, #node-master-trad', { opacity: 1, scale: 1.05, duration: 0.5, ease: "back.out" })
+          .to('#delta-indicator', { opacity: 1, y: -5, duration: 0.4 }, "-=0.3")
+          .to('#node-master, #node-master-trad', { scale: 1, duration: 0.2 })
+          .to('#node-airflow, #node-airflow-trad', { opacity: 1, duration: 0.4 }, "+=0.2");
 
-        // 3. Decoupled Orchestration
-        setStory("2. Edge Workers poll the API (Decoupled Orchestration).", "+=1");
-        tl.to('#wan-control, #wan-control-trad', { opacity: 1, duration: 0.3 })
-          .to('#label-control, #label-control-trad', { opacity: 1, duration: 0.3 })
-          .to('#node-worker, #node-worker-trad', { opacity: 1, duration: 0.4 })
-          // Animate control signals
-          .fromTo('#signal-control, #signal-control-trad', { x: 0, opacity: 1 }, { x: "100%", opacity: 0, duration: 1.5, ease: "power1.inOut" })
-          .to('#node-worker, #node-worker-trad', { boxShadow: "0 0 15px rgba(59, 130, 246, 0.5)", duration: 0.3 }, "-=0.5");
-
-        // 4. Hydration vs Full Copy
-        setStory("3. Modern FlexCache dynamically loads delta. Traditional starts massive full copy.", "+=1");
-        // --- Modern Path (Fast) ---
-        tl.to('#node-flexcache', { opacity: 1, duration: 0.4 })
-          .to('#node-flexcache', { boxShadow: "0 0 15px rgba(16, 185, 129, 0.6)", duration: 0.3 })
-          .to('#cache-hit-bar', { width: "96%", duration: 1, ease: "power2.out", onComplete: () => {
-              document.getElementById('cache-hit-bar').innerText = "480GB HIT";
-          }})
-          .to('#node-master', { opacity: 1, duration: 0.4 }, "-=0.8")
-          .to('#delta-indicator', { opacity: 1, y: -5, duration: 0.4, ease: "back.out" }, "-=0.6")
-          .to('#wan-data', { opacity: 1, duration: 0.3 }, "-=0.6")
-          .to('#label-data', { opacity: 1, duration: 0.3 }, "-=0.6")
-          .to('#egress-tracker', { opacity: 1, y: -10, duration: 0.5, ease: "back.out" }, "-=0.6")
+        // 3. Approach Divergence
+        tl.add(updateStory("2. Traditional pipelines use the orchestrator to run custom 'aws s3 cp' sync scripts. FlexCache relies on the storage layer."), "+=1")
+          .to('#node-airflow-trad', { className: "+=alert-glow", duration: 0.4 })
+          .to('#wan-data-trad', { opacity: 1, duration: 0.3 })
+          .to('#label-data-trad', { opacity: 1, y: -5, duration: 0.3 })
+          .to('#massive-transfer', { opacity: 1, duration: 0.3 })
+          // Traditional sync starts incredibly slow
+          .to('#massive-transfer', { scaleX: 0.2, duration: 3, ease: "none" })
           
-          // --- Traditional Path (Slow start) ---
-          .to('#node-master-trad', { opacity: 1, duration: 0.4 }, "-=1")
-          .to('#node-localdisk-trad', { opacity: 1, duration: 0.4 }, "-=1")
-          .to('#wan-data-trad', { opacity: 1, duration: 0.3 }, "-=1")
-          .to('#label-data-trad', { opacity: 1, duration: 0.3 }, "-=1")
-          .to('#massive-transfer', { opacity: 1, duration: 0.3 }, "-=1")
-          // Massive transfer scales extremely slowly
-          .to('#massive-transfer', { scaleX: 0.3, duration: 3, ease: "none" }, "-=0.7");
+          // Modern execution doesn't sync, it just runs
+          .to('#node-airflow', { className: "-=opacity-50", duration: 0.4 }, "-=3")
+          .to('#node-worker', { opacity: 1, className: "+=glow", duration: 0.4 }, "-=2.8");
 
-        // Animate particles flowing for Modern FlexCache
+        // 4. FlexCache Lazy Load
+        tl.add(updateStory("3. Storage-Layer: Inference starts instantly. 480GB served locally. FlexCache lazy-loads only the 20GB delta (safetensors format)."), "-=1")
+          .to('#node-flexcache', { opacity: 1, duration: 0.4 })
+          .to('#cache-hit-bar', { width: "96%", duration: 0.8, ease: "power2.out" })
+          .to('#wan-data', { opacity: 1, duration: 0.3 }, "-=0.4")
+          .to('#label-data', { opacity: 1, y: -5, duration: 0.3 }, "-=0.4")
+          .to('#egress-tracker', { opacity: 1, y: -10, duration: 0.5, ease: "back.out" });
+
+        // Particles flow quickly for the delta
         for (let i = 0; i < numParticles; i++) {
             tl.fromTo(`#particle-${i}`, 
                 { x: 0, opacity: 1 }, 
-                { x: document.getElementById('wan-data').offsetWidth, opacity: 0, duration: 1.2, ease: "none" }, 
-                `-=${i === 0 ? 3 : 0.9}`
+                { x: document.getElementById('wan-data').offsetWidth, opacity: 0, duration: 1, ease: "none" }, 
+                `-=${i === 0 ? 0 : 0.8}`
             );
         }
 
-        // Complete the cache miss bar for Modern while particles flow
-        tl.to('#cache-miss-bar', { width: "4%", duration: 1.5, ease: "power1.inOut" }, "-=1.5")
-          .to('#node-flexcache', { boxShadow: "0 0 15px rgba(59, 130, 246, 0.5)", duration: 0.3 });
+        // Cache miss bar fills up representing the 20GB delta
+        tl.to('#cache-miss-bar', { width: "4%", duration: 1, ease: "power1.inOut" }, "-=1")
+          .to('#status-inference', { opacity: 1, y: -5, duration: 0.5, ease: "back.out" });
 
-        // 5. Modern Action & Savings Metric (While Traditional is still copying)
-        setStory("4. Modern Pipeline finishes instantly. Egress cost drops to $0.40.", "+=0.5");
-        tl.to('#node-db', { opacity: 1, scale: 1.05, duration: 0.4 })
-          .to('#node-db', { scale: 1, duration: 0.2 })
-          .to('#status-inference', { opacity: 1, y: -5, duration: 0.5, ease: "back.out" })
-          // Tick the cost up to $0.40 safely
-          .to(costData, { modern: 0.40, duration: 1.5, ease: "power2.out", onUpdate: () => {
-              document.getElementById('cost-value').innerText = costData.modern.toFixed(2);
-          }})
-          .set('#cost-strike', { display: 'inline-block' })
-          .to('#cost-strike', { opacity: 1, duration: 0.3 })
-          // Meanwhile, traditional is STILL transferring
-          .to('#massive-transfer', { scaleX: 0.6, duration: 2, ease: "none" }, "-=1.5");
+        // 5. Traditional Struggles & Cost scaling
+        tl.add(updateStory("4. Orchestrator-Layer: Pipeline stalled while full 500GB transfers. High risk of sync script failure and data drift."), "+=0.5")
+          .to('#node-worker-trad', { opacity: 1, className: "+=alert-glow", duration: 0.4 })
+          .to('#node-localdisk-trad', { opacity: 1, duration: 0.4 })
+          .to('#status-inference-trad', { opacity: 1, y: -5, duration: 0.5, ease: "back.out" })
+          .to('#massive-transfer', { scaleX: 1, duration: 3, ease: "none" }) // Slowly finishes
+          .to('#egress-tracker-trad', { opacity: 1, y: -10, duration: 0.5, ease: "back.out" });
 
-        // 6. Traditional Finishes (Delay & High Cost)
-        setStory("5. Pipeline stalled. Traditional Pipeline finally completes. Massive Egress Costs incurred.", "+=1");
-        tl.to('#massive-transfer', { scaleX: 1, duration: 2, ease: "none" })
-          .to('#egress-tracker-trad', { opacity: 1, y: -10, duration: 0.5, ease: "back.out" })
-          .to(costData, { trad: 10.00, duration: 2, ease: "power2.out", onUpdate: () => {
-              document.getElementById('cost-value-trad').innerText = costData.trad.toFixed(2);
-          }}, "-=2")
-          .to('#node-db-trad', { opacity: 1, scale: 1.05, duration: 0.4 })
-          .to('#node-db-trad', { scale: 1, duration: 0.2 })
-          .to('#status-inference-trad', { opacity: 1, y: -5, duration: 0.5, ease: "back.out" });
+        // 6. The Scale Metric Reveal
+        tl.add(updateStory("5. At Scale (across 4 regions, multiple models): Traditional costs ~$2,650/mo. FlexCache costs ~$106/mo."), "-=1.5")
+          // Tick up modern cost
+          .to(costData, { modern: 106, duration: 1.5, ease: "power2.out", onUpdate: () => {
+              document.getElementById('cost-value').innerText = Math.round(costData.modern).toLocaleString();
+          }}, "-=1")
+          // Tick up trad cost
+          .to(costData, { trad: 2650, duration: 2, ease: "power2.out", onUpdate: () => {
+              document.getElementById('cost-value-trad').innerText = Math.round(costData.trad).toLocaleString();
+          }}, "-=1.5");
 
-        // Final Story Text
-        setStory("The Paradox Solved: Centralized Governance. Local Performance. Minimal Egress.", "+=2");
+        // 7. Conclusion
+        tl.add(updateStory("Stop building custom sync pipelines. Let the storage layer handle data movement."), "+=3");
 
-        // Auto-play immediately on load
+        // Start automatically
         tl.play();
-
     </script>
 </body>
 </html>
